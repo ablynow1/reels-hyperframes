@@ -92,7 +92,7 @@ def validate(cfg, D):
     for i, g in enumerate(caps):
         if g["e"] <= g["s"]:
             warn.append(f"legenda {i} termina antes de começar")
-        if len(" ".join(w[0] for w in g["w"])) > (13 if g.get("big") else 16):
+        if len(" ".join(w[0] for w in g["w"])) > (12 if g.get("big") else 15):
             warn.append(f"legenda {i} ('{' '.join(w[0] for w in g['w'])}') pode quebrar em 2 linhas; divida o bloco")
     return warn
 
@@ -168,7 +168,7 @@ def main():
         print("\nAVISOS:")
         for w in warnings:
             print("  - " + w)
-    print("\nPróximo: cd project && npx hyperframes check")
+    print(f"\nPróximo: python3 {SKILL_DIR}/scripts/hf.py <pasta-de-trabalho> check")
 
 
 if __name__ == "__main__":

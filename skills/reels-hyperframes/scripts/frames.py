@@ -2,11 +2,13 @@
 """Tira quadros do vídeo original para OLHAR antes de decidir.
 
 Modos:
-  grid   -> quadros com uma grade de 10% (achar o centro do rosto para o corte 9:16)
+  overview -> 20 quadros espalhados pelo vídeo todo (tem alguém falando pra câmera? tem tela sobreposta?)
+  grid   -> quadros com uma grade de 10% (achar o centro do rosto ou a região da tela para o corte 9:16)
   crop   -> quadros já cortados em 9:16 com --center (conferir o enquadramento)
   range  -> 1 quadro por segundo num intervalo (ver se há texto/tela sobreposta, gesto, corte)
 
 Uso:
+  python3 frames.py <pasta> overview
   python3 frames.py <pasta> grid  --at 30,120,300
   python3 frames.py <pasta> crop  --at 30,120,300 --center 0.52
   python3 frames.py <pasta> range --from 440 --to 465
@@ -22,7 +24,7 @@ from common import die, need, run, video_info, work_paths
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("work")
-    ap.add_argument("mode", choices=["grid", "crop", "range"])
+    ap.add_argument("mode", choices=["overview", "grid", "crop", "range"])
     ap.add_argument("--at", default="")
     ap.add_argument("--center", type=float, default=0.5)
     ap.add_argument("--from", dest="t0", type=float, default=0)
@@ -34,7 +36,14 @@ def main():
     W, H = info["width"], info["height"]
     out = p["source"] / f"frames_{a.mode}.jpg"
 
-    if a.mode == "range":
+    if a.mode == "overview":
+        n, cols = 20, 5
+        step = info["duration"] / n
+        run(["ffmpeg", "-v", "error", "-y", "-i", p["original"],
+             "-vf", f"fps=1/{step:.3f},scale=256:-2,tile={cols}x{n // cols}:padding=3:color=white", "-frames:v", "1", out])
+        print(f"1 quadro a cada {step:.0f} s. Confira: tem uma pessoa falando pra câmera? Se não (tela gravada, slides),"
+              " siga references/screen-recording.md e avise a pessoa antes.")
+    elif a.mode == "range":
         if a.t1 <= a.t0:
             die("use --from e --to (em segundos).")
         n = int(math.ceil(a.t1 - a.t0))

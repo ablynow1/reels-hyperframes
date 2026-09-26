@@ -10,6 +10,14 @@ from pathlib import Path
 SKILL_DIR = Path(__file__).resolve().parent.parent
 HF_VERSION = "0.8.78"  # versão do HyperFrames testada com esta skill
 HF = ["npx", "-y", f"hyperframes@{HF_VERSION}"]
+# Variáveis que deixam o HyperFrames quieto: sem telemetria, sem checar atualização, sem instalar
+# skills globais no Claude Code. (A chave do Gemini é removida no hf.py para o snapshot não enviar quadros.)
+HF_ENV = {
+    "HYPERFRAMES_NO_TELEMETRY": "1",
+    "DO_NOT_TRACK": "1",
+    "HYPERFRAMES_NO_UPDATE_CHECK": "1",
+    "HYPERFRAMES_SKIP_SKILLS": "1",
+}
 
 # Duração (s) de cada efeito sonoro que vem dentro do pacote do HyperFrames
 SFX_DURATIONS = {
@@ -122,6 +130,38 @@ def find_sfx_dir(project=None):
         if (c / "whoosh.mp3").exists():
             return c
     return None
+
+
+def detect_pauses(media, start, end, min_dur=0.12):
+    """Pausas no áudio entre start e end (s, tempo do arquivo). O limite de silêncio sai do próprio áudio:
+    fica entre o ruído de fundo (10% mais baixos) e a fala (10% mais altos), então funciona com voz alta,
+    baixa ou com chiado. Devolve (pausas, limite_db)."""
+    import re as _re
+
+    dur = max(0.1, end - start)
+    stats = subprocess.run(
+        ["ffmpeg", "-hide_banner", "-ss", f"{start:.3f}", "-t", f"{dur:.3f}", "-i", str(media), "-vn",
+         "-af", "aresample=16000,asetnsamples=n=800:p=0,astats=metadata=1:reset=1,"
+                "ametadata=print:key=lavfi.astats.Overall.RMS_level", "-f", "null", "-"],
+        capture_output=True, text=True,
+    ).stderr
+    levels = sorted(-90.0 if "inf" in x else float(x) for x in _re.findall(r"RMS_level=(-?inf|-?[0-9.]+)", stats))
+    if len(levels) >= 10:
+        noise, speech = levels[int(len(levels) * 0.1)], levels[int(len(levels) * 0.9)]
+        thr = noise + 0.35 * (speech - noise)
+    else:
+        thr = -32.0
+    thr = max(-65.0, min(-20.0, round(thr)))
+    res = subprocess.run(
+        ["ffmpeg", "-hide_banner", "-ss", f"{start:.3f}", "-t", f"{dur:.3f}", "-i", str(media), "-vn",
+         "-af", f"silencedetect=noise={thr}dB:d={min_dur}", "-f", "null", "-"],
+        capture_output=True, text=True,
+    ).stderr
+    starts = [float(x) + start for x in _re.findall(r"silence_start: (-?[0-9.]+)", res)]
+    ends = [float(x) + start for x in _re.findall(r"silence_end: (-?[0-9.]+)", res)]
+    if len(ends) < len(starts):
+        ends.append(end)
+    return [(max(start, a), b) for a, b in zip(starts, ends)], thr
 
 
 def load_json(path, default=None):

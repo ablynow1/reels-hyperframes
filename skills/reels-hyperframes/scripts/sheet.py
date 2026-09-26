@@ -28,7 +28,8 @@ def main():
     t1 = a.t1 if a.t1 > a.t0 else dur
     n = max(1, int(math.ceil((t1 - a.t0) * a.fps)))
     rows = int(math.ceil(n / a.cols))
-    out = Path(a.out) if a.out else v.with_name(v.stem + "_folha.jpg")
+    tag = f"_{a.t0:g}-{t1:g}s" if (a.t0 > 0 or a.t1 > a.t0) else ""
+    out = Path(a.out) if a.out else v.with_name(f"{v.stem}_folha{tag}.jpg")
     run(["ffmpeg", "-v", "error", "-y", "-ss", a.t0, "-t", t1 - a.t0, "-i", v,
          "-vf", f"fps={a.fps},scale={a.width}:-2,tile={a.cols}x{rows}:padding=4:color=white", "-frames:v", "1", out])
     print(f"Folha: {out}  ({n} quadros, {a.fps}/s, de {a.t0:.1f}s a {t1:.1f}s)")

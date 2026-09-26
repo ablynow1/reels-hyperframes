@@ -2,6 +2,7 @@
 """Gera as legendas palavra por palavra no tempo do corte (project/captions.json).
 
 Regras: 2–3 palavras por bloco, uma linha só (até ~15 letras), quebra nas vírgulas e pausas.
+O começo/fim de cada palavra é encaixado nas pausas reais do áudio (o Whisper às vezes erra).
 Destaques automáticos (revise!): número/% -> verde "g"; nome próprio/sigla -> amarelo "y";
 negação (não, nunca…) -> vermelho "r". Blocos com número ou palavra única destacada ficam grandes.
 
@@ -12,7 +13,7 @@ Uso:
 import argparse
 import re
 
-from common import die, load_json, save_json, work_paths
+from common import detect_pauses, die, load_json, save_json, work_paths
 
 NEG = {"não", "nao", "nunca", "nem", "jamais", "no", "not", "never", "nada"}
 FUNC = {"de", "da", "do", "das", "dos", "a", "o", "as", "os", "e", "que", "pra", "para", "com", "em", "no", "na",
@@ -42,7 +43,19 @@ def main():
     # palavras do corte, no tempo do corte
     cw = []
     for pi, ((a0, b0), off) in enumerate(zip(clip["pieces"], clip["offsets"])):
+        pauses, _ = detect_pauses(p["original"], max(0.0, a0 - 1.0), b0 + 1.0)
         for i, w in enumerate(words):
+            if w["end"] < a0 - 1 or w["start"] > b0 + 1:
+                continue
+            ws, we = w["start"], w["end"]
+            for ps, pe in pauses:
+                if ps <= ws + 0.2 and ps < we - 0.05 and pe > ws + 0.05:
+                    ws, we = pe, max(we, pe + 0.12)  # a pausa cobre o começo: a palavra só começa depois dela
+                elif ws < ps and pe < we - 0.08 and ps - ws > 0.2 and we - ws > 0.8:
+                    ws = pe  # pausa no meio de uma palavra esticada: ela começa depois da pausa
+                if ps < we - 0.05 <= pe and ps > ws + 0.08:
+                    we = ps  # a pausa cobre o fim: a palavra termina antes dela
+            w = dict(w, start=ws, end=we)
             dur = max(0.01, w["end"] - w["start"])
             inside = min(w["end"], b0) - max(w["start"], a0)
             if inside <= 0:

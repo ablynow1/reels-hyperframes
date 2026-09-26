@@ -11,7 +11,11 @@ Você só pede, em português, e o Claude:
 3. corta, reenquadra em 9:16 e padroniza o volume da voz;
 4. recorta a pessoa do fundo (IA local) para animar coisas **por trás dela**;
 5. monta os efeitos em cima da fala, com legenda palavra por palavra e efeitos sonoros;
-6. confere os quadros, ajusta posições e renderiza o MP4 1080×1920.
+6. confere os quadros em cada troca de efeito, ajusta posições e renderiza o MP4 1080×1920;
+7. (opcional) dá o acabamento: borrão de movimento nos socos de câmera e grão de filme.
+
+Também funciona com **gravação de tela narrada** (modo tela: corta a região certa da tela, tira barra de
+menu e notificações, e põe os efeitos por cima).
 
 ## Efeitos
 
@@ -23,6 +27,7 @@ Você só pede, em português, e o Claude:
 - **Anel de porcentagem** enchendo por trás da cabeça, com contador na legenda
 - **Legenda palavra por palavra** com destaques em amarelo, verde e vermelho
 - **Efeitos sonoros** automáticos (whoosh, pop, impacto, riser, brilho)
+- **Acabamento opcional**: borrão de movimento e grão de filme; limpeza leve de ruído na voz
 
 Exemplo: o config completo do Reels feito a partir do vídeo
 [A Appmax é um gateway seguro?](https://www.youtube.com/watch?v=3Y6isKPyReU) está em
@@ -77,11 +82,18 @@ Peça do seu jeito, por exemplo:
 Um Reels leva uns 15–30 min na primeira vez (a maior parte é transcrição e recorte da pessoa).
 O vídeo final fica em `reels-<assunto>/project/renders/reel.mp4`.
 
+## Quanto custa
+Quase tudo roda no seu computador: download, transcrição (Whisper local), recorte da pessoa (IA local)
+e render (Chrome + FFmpeg). Nenhuma API paga é chamada. O que gasta tokens do Claude é o raciocínio:
+ler a transcrição, escolher o trecho, montar o roteiro e olhar os quadros — um Reels completo com
+ajustes fica na casa de algumas centenas de milhares de tokens.
+
 ## Bom saber
 
 - Use só vídeos seus ou com permissão.
 - O texto na tela sai do que a pessoa fala; a skill não inventa números.
-- Nada é instalado de forma global: o HyperFrames fica dentro da pasta do projeto e a telemetria dele é desligada.
+- Nada é instalado de forma global: o HyperFrames fica dentro da pasta do projeto e roda sem telemetria
+  e sem checagem de atualização (variáveis de ambiente, nada gravado fora do projeto).
 - Vídeo de origem em 720p fica um pouco mais suave que uma gravação vertical nativa.
 
 ## Créditos
@@ -90,6 +102,8 @@ O vídeo final fica em `reels-<assunto>/project/renders/reel.mp4`.
 - Efeitos sonoros: vêm dentro do pacote do HyperFrames (Pixabay Content License) e são copiados para o
   seu projeto na instalação; não são redistribuídos por este repositório.
 - Fontes Montserrat e Bebas Neue (Google Fonts), resolvidas pelo HyperFrames.
+- Ideias de revisão em cada troca de cena e de borrão de movimento por subquadros vieram do
+  [pdoom-video](https://github.com/mexicat/pdoom-video) (MIT).
 
 ## Licença
 

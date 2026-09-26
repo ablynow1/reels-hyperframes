@@ -27,6 +27,7 @@ def main():
             [
                 "yt-dlp",
                 "--no-warnings",
+                "--no-progress",
                 "--no-playlist",
                 "-f",
                 "bv*[height<=1080][ext=mp4]+ba[ext=m4a]/b[height<=1080][ext=mp4]/b",

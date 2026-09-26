@@ -1,7 +1,8 @@
 # Efeitos e campos do `config.json`
 
 Tudo em segundos (tempo do corte, começando em 0) e em pixels da tela vertical **1080×1920**.
-Qualquer efeito pode ser omitido. Exemplo completo: `assets/config.example.json`.
+Qualquer efeito pode ser omitido, e cada um aparece **uma vez** no vídeo. Exemplo completo:
+`assets/config.example.json`.
 
 ## Sumário
 - Campos gerais
@@ -14,6 +15,7 @@ Qualquer efeito pode ser omitido. Exemplo completo: `assets/config.example.json`
 - Anel de porcentagem (`effects.ring`)
 - Legendas e contador
 - Efeitos sonoros
+- Fundo claro
 - Zonas da tela (onde pôr cada coisa)
 
 ## Campos gerais
@@ -139,6 +141,14 @@ Lista manual, se quiser controlar:
 Arquivos disponíveis (vêm no pacote do HyperFrames): whoosh, whoosh-short, whoosh-cinematic, pop,
 impact-bass-1, impact-bass-2, sparkle, riser, chime, ping, click, click-soft, notification, glitch-1/2/3,
 error, typing, key-press (`.mp3`). Volume ~0,3: o som fica por baixo da voz.
+
+## Fundo claro
+As cores padrão (texto gigante branco com brilho roxo, símbolo roxo) somem em parede branca ou tela clara.
+Em fundo claro:
+- `bigWord`: `"color": "#111111"` e um `glow` colorido (ex.: `"rgba(255, 196, 0, 0.9)"`);
+- `bigSymbol`: cor escura ou bem saturada (ex.: `"#111111"`, `"#6a2ee8"`);
+- `ring`: cor forte (ex.: `"#1faa59"`) e `glow` mais fraco.
+As legendas já têm contorno preto; o aviso de contraste delas no check pode ser ignorado.
 
 ## Zonas da tela (1080×1920)
 - **Cabeça num close**: x ≈ 270–900, y ≈ 150–1120. O que passa por trás tem que ficar fora disso

@@ -10,7 +10,10 @@
   ou `brew install whisper-cpp` (o `transcribe.py` usa o que existir).
 - **Texto saiu em inglês** → modelo `.en` traduz. Use sempre `--lang` com o idioma da fala.
 - **Palavra com tempo esticado** (ex.: "qual" durando 1,2 s) → o Whisper colou uma pausa na palavra.
-  Use as pausas do `words.py` para cortar; o `build_captions.py` já corrige palavras longas demais.
+  Use as pausas do `words.py` para cortar; o `build_captions.py` encaixa o começo e o fim das palavras nas
+  pausas reais do áudio.
+- **Pausas demais ou de menos** → o limite de silêncio é calculado entre o ruído de fundo e a fala; em áudio
+  muito ruidoso ele pode errar. Confira ouvindo o trecho ou pelos tempos das palavras.
 - **Demora muito** → outras coisas pesadas rodando na máquina disputam a CPU. Espere, ou transcreva só um
   trecho: extraia com `ffmpeg -ss INICIO -t DURACAO` e ajuste os tempos.
 
@@ -19,7 +22,9 @@
 - **`Font families used without @font-face declaration`** → fonte fora da lista automática (ex.: Anton, Impact).
   Use Montserrat, Bebas Neue, League Gothic, Oswald, Archivo Black, Poppins ou Inter.
 - **`content_overlap` entre balões** → dois balões no mesmo lugar; mude `left`/`top`.
-- **Contraste baixo** (símbolo claro em parede clara) → troque `color` do `bigSymbol`.
+- **Contraste baixo** (símbolo claro em parede clara) → troque `color` do `bigSymbol` (veja "Fundo claro" em `effects.md`).
+- **Contraste baixo nas legendas** (`#g1w1 1.94:1`) em fundo claro → pode ignorar: elas têm contorno preto,
+  que o check não enxerga.
 - **`composition_file_too_large`** → aviso esperado; pode ignorar.
 - **`canvas_overflow` informativo** em texto gigante → normal quando o texto encosta na borda durante o zoom.
 
@@ -34,6 +39,11 @@
 ## Desempenho
 - **Render trava ou falha por memória** → `-w 1`. Feche outros apps pesados.
 - **Recorte (remove-background) lento** → é normal: ~0,3–0,8 s por quadro. Rode em segundo plano.
+
+## Vídeo sem pessoa
+- **É gravação de tela, slides ou imagem parada** → avise a pessoa e siga `references/screen-recording.md`.
+  Não rode o remove-background numa tela: ele recorta pedaços aleatórios da imagem.
+- **Barra de menu, notificação ou agenda aparecendo** → corte fora com `make_clip.py --crop x,y,largura,altura`.
 
 ## Instalação
 - **Pediram para rodar `npx hyperframes skills`** (o CLAUDE.md que o `hyperframes init` cria sugere) → não rode;

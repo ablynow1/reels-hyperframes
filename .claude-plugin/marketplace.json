@@ -1,0 +1,12 @@
+{
+  "name": "reels-hyperframes",
+  "owner": { "name": "Vitor Passos" },
+  "description": "Skill para transformar vídeos de pessoa falando em Reels editados com HyperFrames.",
+  "plugins": [
+    {
+      "name": "reels-hyperframes",
+      "source": "./",
+      "description": "Reels/Shorts/TikTok de ~15 s com edição de impacto feita com HyperFrames."
+    }
+  ]
+}

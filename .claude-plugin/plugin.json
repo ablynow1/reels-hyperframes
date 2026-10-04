@@ -1,6 +1,6 @@
 {
   "name": "reels-hyperframes",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Transforma um vídeo de alguém falando pra câmera (YouTube ou arquivo) num Reels/Shorts/TikTok vertical de ~15 s com edição de impacto feita com HyperFrames: melhor trecho, corte 9:16, pessoa recortada do fundo, efeitos por trás dela, legenda palavra por palavra e efeitos sonoros.",
   "author": { "name": "Vitor Passos" },
   "homepage": "https://github.com/ablynow1/reels-hyperframes",

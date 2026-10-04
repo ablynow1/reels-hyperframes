@@ -73,7 +73,7 @@ Se a pessoa pediu um assunto ou um tempo, siga o pedido. Se não, procure:
 - **Gancho nos 2 primeiros segundos**: pergunta, afirmação forte, "todo mundo me pergunta…", número.
 - **Uma ideia completa**, que faça sentido sem o resto do vídeo.
 - **Algo concreto** para virar gráfico: número, comparação, contraste ("diferente de outros…", "acima de 90%").
-- **13 a 16 s.** Dá para tirar enrolação ("porque, primeiro…") com 1 ou 2 cortes, sempre numa pausa.
+- **13 a 16 s** (a não ser que peçam o vídeo inteiro: aí use um pedaço só, `--pieces "0-<duração>"`). Dá para tirar enrolação ("porque, primeiro…") com 1 ou 2 cortes, sempre numa pausa.
   Os pedaços entram na ordem em que você escreve — dá para trazer um gancho de depois para o começo.
 - Pessoa de frente, sem texto/tela sobreposta no vídeo original e sem troca de câmera no trecho.
 
@@ -138,6 +138,11 @@ Cada efeito começa na palavra que o motiva e aparece **uma vez** no vídeo. Est
 | explicação | "alta taxa de aprovação…" | `glass` (camadas de vidro com cartão) |
 | comparação ou lista | "diferente de outros gateways…" | `frame` (moldura + manchete + cartões) |
 | número final | "acima de 90%" | `ring` + contador na legenda + soco de câmera |
+
+Para algo técnico que precisa ser explicado (peça, processo, comparação), use `diagram` (ilustração SVG
+que você desenha, montada por etapas); para ranking ou lista com posições, `table`. Vídeo longo (30–60 s)
+pede efeitos espalhados a cada 5–8 s; `bigWord` e `bigSymbol` podem repetir (lista), com `"front": true`
+quando a cabeça ocupa o topo da tela.
 
 Use só os efeitos que a fala sustenta — 4 a 6 em 15 s já é muito. `glass` e `frame` mexem na cena
 inteira e não podem se sobrepor; socos de câmera com pelo menos 1 s de distância. Fundo claro pede

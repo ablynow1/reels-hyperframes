@@ -1,7 +1,8 @@
 # Efeitos e campos do `config.json`
 
 Tudo em segundos (tempo do corte, começando em 0) e em pixels da tela vertical **1080×1920**.
-Qualquer efeito pode ser omitido, e cada um aparece **uma vez** no vídeo. Exemplo completo:
+Qualquer efeito pode ser omitido. `bigWord`, `bigSymbol`, `diagram` e `table` aceitam uma **lista** (aparecem
+quantas vezes quiser); `bubbles`, `glass`, `frame` e `ring` aparecem uma vez. Exemplo completo:
 `assets/config.example.json`.
 
 ## Sumário
@@ -13,6 +14,8 @@ Qualquer efeito pode ser omitido, e cada um aparece **uma vez** no vídeo. Exemp
 - Camadas de vidro 3D (`effects.glass`)
 - Moldura + painel (`effects.frame`)
 - Anel de porcentagem (`effects.ring`)
+- Ilustração explicativa (`effects.diagram`)
+- Tabela / ranking (`effects.table`)
 - Legendas e contador
 - Efeitos sonoros
 - Fundo claro
@@ -75,6 +78,9 @@ Para "todo mundo me pergunta…", "meus clientes falam…": as perguntas surgem 
 "bigWord": { "text": "APPMAX", "at": 5.31, "out": 5.95, "top": -10, "size": 300, "color": "#ffffff", "glow": "rgba(123, 63, 242, 0.9)" }
 ```
 - Bate por trás da cabeça na hora da palavra. Combine com um soco de câmera no mesmo `at`.
+- `"front": true` põe a palavra **na frente** da pessoa (contorno preto, amarelo por padrão, `top` padrão 960):
+  use quando a cabeça ocupa o topo da tela e não sobra espaço atrás dela (selfie, vídeo no carro).
+- Para várias palavras, use uma lista: `"bigWord": [ {...}, {...} ]`.
 - Fica **acima** da cabeça (`top` −10 a 60): o cabelo cobre só a parte de baixo das letras do meio.
 - Até ~7 letras em `size` 300; palavras maiores, diminua o `size`.
 
@@ -123,12 +129,47 @@ A pessoa encolhe para uma moldura à direita; manchete em cima e cartões à esq
   típico, (540, 620) com raio 430.
 - Combine com o contador na legenda e um soco de câmera no mesmo tempo.
 
+## Ilustração explicativa
+Um painel escuro sobe por cima do vídeo (o fundo escurece) com um SVG que vai se montando por etapas — bom
+para explicar algo técnico que a pessoa fala (motor, processo, antes × depois).
+```json
+"diagram": {
+  "in": 33.3, "out": 41.6, "svg": "engine.svg", "top": 250,
+  "title": "POR QUE O 6.7 É", "accent": "MAIS BAIXO", "subtitle": "ilustração · fora de escala",
+  "steps": [33.55, 35.26, 35.9, 37.54, 39.79]
+}
+```
+- `svg`: arquivo em `project/assets/` (o builder embute no HTML). Marque as partes com `data-step="1"`,
+  `data-step="2"`… — cada uma aparece no tempo correspondente de `steps` (a etapa 1 sem tempo entra logo).
+- Desenhe o SVG você mesmo (formas simples, texto em "Bebas Neue"/"Montserrat"), com `viewBox` justo e
+  legível em 1000 px de largura. Ilustração sem medida real? Escreva "ilustração · fora de escala".
+- `dim` (0–1) = quanto o vídeo escurece por trás (padrão 0,78). `out` no fim do vídeo = fica até o final.
+
+## Tabela / ranking
+Lista com posições que vão entrando uma a uma (de baixo para cima com `"order": "up"`), destaque dourado.
+```json
+"table": {
+  "in": 50.18, "out": 60.15, "top": 150,
+  "title": "QUEM ELE", "accent": "DESBANCOU", "subtitle": "ranking de aceleração lateral",
+  "order": "up", "rowStart": 50.7, "rowStep": 0.45, "flashAt": 57.24,
+  "rows": [
+    { "label": "Corvette Grand Sport Z52", "value": "1,23 G", "hl": "gold" },
+    { "label": "McLaren 765LT Spider" },
+    { "label": "Corvette C8 ZR1", "hl": "mark" }
+  ]
+}
+```
+- `hl`: `"gold"` (linha campeã) ou `"mark"` (borda vermelha, para chamar atenção). `value` é opcional —
+  só ponha número que a pessoa falou ou que veio de uma fonte confirmada.
+- Até 10 linhas cabem entre y 150 e 1200 (acima das legendas). `rowTimes` permite tempos manuais.
+- `flashAt` faz a linha dourada pulsar (combine com um soco de câmera).
+
 ## Legendas e contador
 Cada bloco: `{ "s": início, "e": fim, "big": true?, "w": [[PALAVRA, tempo, estilo?], ...] }`.
 - Estilos: `"y"` amarelo, `"g"` verde, `"r"` vermelho. `big` = fonte maior (bloco de impacto).
 - Um bloco por vez, uma linha (até ~15 letras; `big` até ~12).
 - Contador: a palavra `"#NUM"` mostra `counter.values` um depois do outro a cada `counter.step`
-  segundos, a partir do tempo da palavra.
+  segundos, a partir do tempo da palavra. Valores longos ("1,23G") pedem `counter.width` maior (em em, padrão 3,1).
 - As legendas ficam em y ≈ 1250–1340 (terço de baixo, acima da interface do Instagram).
 
 ## Efeitos sonoros

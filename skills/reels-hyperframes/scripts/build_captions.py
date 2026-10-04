@@ -15,7 +15,7 @@ import re
 
 from common import detect_pauses, die, load_json, save_json, work_paths
 
-NEG = {"não", "nao", "nunca", "nem", "jamais", "no", "not", "never", "nada"}
+NEG = {"não", "nao", "nunca", "nem", "jamais", "nada"}
 FUNC = {"de", "da", "do", "das", "dos", "a", "o", "as", "os", "e", "que", "pra", "para", "com", "em", "no", "na",
         "nos", "nas", "um", "uma", "se", "por", "ao", "à", "the", "of", "to", "and", "in"}
 
@@ -124,7 +124,13 @@ def main():
     # bloco de 1 palavra sem destaque logo depois de um bloco cheio: equilibra (ex.: "UMA TAXA" | "TÃO ALTA")
     for gi in range(1, len(groups)):
         g, prev = groups[gi], groups[gi - 1]
-        if len(g) == 1 and len(prev) >= a.max_words and prev[-1]["piece"] == g[0]["piece"] and style(g[0]) is None:
+        if (
+            len(g) == 1
+            and len(prev) >= a.max_words
+            and prev[-1]["piece"] == g[0]["piece"]
+            and style(g[0]) is None
+            and len(prev[-1]["text"]) + 1 + len(g[0]["text"]) <= a.max_chars
+        ):
             g.insert(0, prev.pop())
 
     out = []

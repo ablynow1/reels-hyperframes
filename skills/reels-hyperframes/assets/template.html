@@ -77,6 +77,10 @@
         position: absolute;
         inset: 0;
       }
+      .clipwrap {
+        position: absolute;
+        inset: 0;
+      }
       .vid {
         position: absolute;
         inset: 0;
@@ -110,13 +114,13 @@
       }
 
       /* Símbolo gigante e palavra gigante (por trás da pessoa) */
-      #bigsym {
+      .bigsym {
         position: absolute;
         font-family: "Bebas Neue", sans-serif;
         line-height: 1;
         opacity: 0;
       }
-      #bigword {
+      .bigword {
         position: absolute;
         left: 0;
         right: 0;
@@ -125,6 +129,137 @@
         line-height: 1;
         letter-spacing: 0.04em;
         opacity: 0;
+      }
+
+      .bigword.front {
+        text-shadow:
+          6px 6px 0 #000,
+          -6px 6px 0 #000,
+          6px -6px 0 #000,
+          -6px -6px 0 #000,
+          0 8px 0 #000,
+          0 -8px 0 #000,
+          8px 0 0 #000,
+          -8px 0 0 #000,
+          0 22px 50px rgba(0, 0, 0, 0.6) !important;
+      }
+      #front {
+        position: absolute;
+        inset: 0;
+      }
+
+      /* Painéis por cima de tudo (ilustração, tabela) com fundo escurecido */
+      #overlay {
+        position: absolute;
+        inset: 0;
+      }
+      #dim {
+        position: absolute;
+        inset: 0;
+        background: #05060a;
+        opacity: 0;
+      }
+      .panel {
+        position: absolute;
+        left: 40px;
+        right: 40px;
+        padding: 36px 34px 30px;
+        border-radius: 40px;
+        background: rgba(16, 17, 24, 0.92);
+        border: 2px solid rgba(255, 255, 255, 0.18);
+        box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6);
+        color: #fff;
+        opacity: 0;
+      }
+      .panel .ptitle {
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 74px;
+        line-height: 1;
+        letter-spacing: 0.02em;
+      }
+      .panel .ptitle span {
+        color: #ffd400;
+      }
+      .panel .psub {
+        margin-top: 10px;
+        font-weight: 800;
+        font-size: 26px;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: #9aa3b2;
+      }
+      .panel .pbody {
+        margin-top: 22px;
+      }
+      .panel .pbody svg {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+      .panel .pnote {
+        margin-top: 14px;
+        font-weight: 700;
+        font-size: 20px;
+        color: #7c8494;
+      }
+      .rows {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        height: 74px;
+        padding: 0 22px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 2px solid transparent;
+        color: #e9ecf2;
+        font-weight: 800;
+        font-size: 31px;
+        opacity: 0;
+      }
+      .row .rk {
+        flex: none;
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.12);
+        font-weight: 900;
+        font-size: 26px;
+        line-height: 52px;
+        text-align: center;
+      }
+      .row .nm {
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .row .vl {
+        flex: none;
+        font-family: "Bebas Neue", sans-serif;
+        font-size: 48px;
+        color: #ffd400;
+      }
+      .row.gold {
+        height: 92px;
+        font-size: 34px;
+        color: #fff;
+        background: linear-gradient(90deg, rgba(255, 212, 0, 0.3), rgba(255, 212, 0, 0.08));
+        border-color: #ffd400;
+      }
+      .row.gold .rk {
+        background: #ffd400;
+        color: #111;
+      }
+      .row.mark {
+        border-color: rgba(255, 107, 107, 0.75);
+      }
+      .row.mark .nm {
+        color: #ffb3b3;
       }
 
       /* Cartão de vidro (camada do meio, nas camadas de vidro) */
@@ -319,19 +454,23 @@
       <div id="cam">
         <div id="scene">
           <!-- camada de trás: fundo do vídeo (com o buraco onde estava a pessoa) -->
+          <!-- camada de trás: o vídeo original; nas camadas de vidro entra o fundo com o buraco da pessoa -->
           <div id="lay-bg" class="layer">
             <div class="fill" style="background: __FILL__"></div>
-            <video
-              id="plate"
-              class="clip vid"
-              src="assets/plate.webm"
-              data-start="0"
-              data-duration="__DURATION__"
-              data-media-start="0"
-              data-track-index="1"
-              muted
-              playsinline
-            ></video>
+            <div id="baseWrap" class="clipwrap">
+              <video
+                id="base"
+                class="clip vid"
+                src="assets/footage.mp4"
+                data-start="0"
+                data-duration="__DURATION__"
+                data-media-start="0"
+                data-track-index="1"
+                muted
+                playsinline
+              ></video>
+            </div>
+__PLATE__
             <div class="pane"></div>
           </div>
 
@@ -342,26 +481,20 @@
           </div>
 
           <!-- camada da frente: a pessoa recortada -->
+          <!-- a pessoa recortada só entra nos trechos em que tem algo passando por trás dela -->
           <div id="lay-person" class="layer">
-            <video
-              id="person"
-              class="clip vid"
-              src="assets/person.webm"
-              data-start="0"
-              data-duration="__DURATION__"
-              data-media-start="0"
-              data-track-index="2"
-              muted
-              playsinline
-            ></video>
+__PERSON__
             <div class="pane"></div>
           </div>
         </div>
+        <!-- camada da frente: textos na frente da pessoa (acompanham a câmera) -->
+        <div id="front"></div>
       </div>
 
       <div id="frameBox"></div>
       <div id="headline"></div>
       <div id="panel"></div>
+      <div id="overlay"><div id="dim"></div></div>
       <div id="caps"></div>
       <div id="flash" class="clip" data-start="0" data-duration="__DURATION__" data-track-index="3"></div>
 
@@ -387,6 +520,7 @@ __SFX__
         return el;
       };
       const mid = $("mid");
+      const arr = (v) => (Array.isArray(v) ? v : v ? [v] : []);
       const tl = gsap.timeline({ paused: true });
 
       // ---------------------------------------------------------------- legendas
@@ -401,6 +535,7 @@ __SFX__
           span.id = "g" + gi + "w" + wi;
           if (txt === "#NUM") {
             span.classList.add("num");
+            if (CONFIG.counter && CONFIG.counter.width) span.style.width = CONFIG.counter.width + "em";
             COUNTER.forEach((n, ni) => {
               const b = mk("b", "", span, esc(n));
               b.id = "n" + ni;
@@ -465,11 +600,10 @@ __SFX__
         tl.to(".bubble", { opacity: 0, scale: 0.6, duration: 0.25, ease: "power2.in", stagger: 0.04 }, B.out);
       }
 
-      // ---------------------------------------------------------------- símbolo gigante por trás
-      if (E.bigSymbol) {
-        const S = E.bigSymbol;
-        const el = mk("div", "", mid, esc(S.text));
-        el.id = "bigsym";
+      // ---------------------------------------------------------------- símbolo gigante (por trás ou na frente)
+      arr(E.bigSymbol).forEach((S, i) => {
+        const el = mk("div", "bigsym", S.front ? $("front") : mid, esc(S.text));
+        el.id = "bigsym" + i;
         el.style.left = px(S.left);
         el.style.top = px(S.top);
         el.style.fontSize = px(S.size || 980);
@@ -478,20 +612,19 @@ __SFX__
         tl.fromTo(el, { opacity: 0, rotationY: -90, scale: 0.7, transformPerspective: 900 }, { opacity: 1, rotationY: 0, scale: 1, duration: 0.5, ease: "back.out(1.6)" }, S.in);
         tl.to(el, { rotation: 8, duration: Math.max(0.3, S.out - S.in - 0.5), ease: "sine.inOut" }, S.in + 0.5);
         tl.to(el, { opacity: 0, scale: 0.5, duration: 0.3, ease: "power2.in" }, S.out);
-      }
+      });
 
-      // ---------------------------------------------------------------- palavra gigante por trás
-      if (E.bigWord) {
-        const W = E.bigWord;
-        const el = mk("div", "", mid, esc(W.text));
-        el.id = "bigword";
-        el.style.top = px(W.top != null ? W.top : -10);
+      // ---------------------------------------------------------------- palavra gigante (por trás ou na frente)
+      arr(E.bigWord).forEach((W, i) => {
+        const el = mk("div", "bigword" + (W.front ? " front" : ""), W.front ? $("front") : mid, esc(W.text));
+        el.id = "bigword" + i;
+        el.style.top = px(W.top != null ? W.top : W.front ? 960 : -10);
         el.style.fontSize = px(W.size || 300);
-        el.style.color = W.color || "#ffffff";
-        el.style.textShadow = "0 0 50px " + (W.glow || "rgba(123, 63, 242, 0.9)") + ", 0 20px 50px rgba(0, 0, 0, 0.35)";
+        el.style.color = W.color || (W.front ? "#ffd400" : "#ffffff");
+        if (!W.front) el.style.textShadow = "0 0 50px " + (W.glow || "rgba(123, 63, 242, 0.9)") + ", 0 20px 50px rgba(0, 0, 0, 0.35)";
         tl.fromTo(el, { opacity: 0, scale: 1.8 }, { opacity: 1, scale: 1, duration: 0.16, ease: "power4.out" }, W.at);
         tl.to(el, { opacity: 0, duration: 0.25, ease: "power2.in" }, W.out);
-      }
+      });
 
       // ---------------------------------------------------------------- anel de porcentagem por trás
       if (E.ring) {
@@ -556,6 +689,9 @@ __SFX__
           tl.to(card, { opacity: 0, duration: 0.2, ease: "power2.in" }, G.out - 0.05);
         }
         tl.set("#scene", { transformOrigin: "50% 50%" }, G.in);
+        // o vídeo original sai e fica só o fundo com o buraco (plate) enquanto as camadas estão separadas
+        tl.set("#baseWrap", { opacity: 0 }, G.in);
+        tl.set("#baseWrap", { opacity: 1 }, G.out + 0.38);
         tl.fromTo("#scene", { rotationY: 0, rotationX: 0, scale: 1 }, { rotationY: ang, rotationX: 5, scale: 0.8, duration: 0.55, ease: "power3.inOut", immediateRender: false }, G.in);
         tl.fromTo("#lay-bg", { z: 0 }, { z: -280, duration: 0.55, ease: "power3.inOut", immediateRender: false }, G.in);
         tl.fromTo("#lay-person", { z: 0 }, { z: 240, duration: 0.55, ease: "power3.inOut", immediateRender: false }, G.in);
@@ -620,6 +756,57 @@ __SFX__
         tl.to("#scene", { x: 0, y: 0, scale: 1, duration: 0.3, ease: "power3.inOut" }, F.out);
         tl.to(".layer", { borderRadius: 0, duration: 0.3, ease: "power3.inOut" }, F.out);
       }
+
+      // ---------------------------------------------------------------- painéis: ilustração (SVG) e tabela/ranking
+      const panelIn = (wrap, P) => {
+        wrap.style.top = px(P.top != null ? P.top : 170);
+        tl.fromTo("#dim", { opacity: 0 }, { opacity: P.dim != null ? P.dim : 0.78, duration: 0.4, ease: "power2.out", immediateRender: false }, P.in);
+        tl.fromTo(wrap, { opacity: 0, y: 80, scale: 0.94 }, { opacity: 1, y: 0, scale: 1, duration: 0.45, ease: "power3.out" }, P.in);
+        if (P.out != null && P.out < D - 0.05) {
+          tl.to(wrap, { opacity: 0, y: 60, duration: 0.35, ease: "power2.in" }, P.out);
+          tl.to("#dim", { opacity: 0, duration: 0.35, ease: "power2.in" }, P.out);
+        }
+      };
+      const phead = (P) =>
+        (P.title ? '<div class="ptitle">' + esc(P.title) + (P.accent ? " <span>" + esc(P.accent) + "</span>" : "") + "</div>" : "") +
+        (P.subtitle ? '<div class="psub">' + esc(P.subtitle) + "</div>" : "");
+
+      arr(E.diagram).forEach((G, i) => {
+        const wrap = mk("div", "panel", $("overlay"));
+        wrap.id = "diagram" + i;
+        wrap.innerHTML = phead(G) + '<div class="pbody">' + (G.svgMarkup || "") + "</div>" + (G.note ? '<div class="pnote">' + esc(G.note) + "</div>" : "");
+        panelIn(wrap, G);
+        const steps = G.steps || [];
+        wrap.querySelectorAll("[data-step]").forEach((node) => {
+          const k = parseInt(node.getAttribute("data-step"), 10);
+          const t = steps[k - 1] != null ? steps[k - 1] : k === 1 ? G.in + 0.3 : null;
+          if (t == null) return;
+          tl.fromTo(node, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }, t);
+        });
+      });
+
+      arr(E.table).forEach((T, i) => {
+        const wrap = mk("div", "panel", $("overlay"));
+        wrap.id = "table" + i;
+        const rows = (T.rows || [])
+          .map((r, k) =>
+            '<div class="row' + (r.hl ? " " + r.hl : "") + '"><span class="rk">' + esc(r.n != null ? r.n : k + 1) + '</span><span class="nm">' +
+            esc(r.label) + "</span>" + (r.value ? '<span class="vl">' + esc(r.value) + "</span>" : "") + "</div>"
+          )
+          .join("");
+        wrap.innerHTML = phead(T) + '<div class="pbody rows">' + rows + "</div>" + (T.note ? '<div class="pnote">' + esc(T.note) + "</div>" : "");
+        panelIn(wrap, T);
+        const els = Array.from(wrap.querySelectorAll(".row"));
+        const order = T.order === "up" ? els.slice().reverse() : els;
+        order.forEach((row, k) => {
+          const t = T.rowTimes && T.rowTimes[k] != null ? T.rowTimes[k] : (T.rowStart != null ? T.rowStart : T.in + 0.4) + k * (T.rowStep || 0.35);
+          tl.fromTo(row, { opacity: 0, x: -50 }, { opacity: 1, x: 0, duration: 0.3, ease: "power3.out" }, t);
+        });
+        if (T.flashAt != null) {
+          const hl = wrap.querySelector(".row.gold") || els[0];
+          tl.fromTo(hl, { scale: 1 }, { scale: 1.05, duration: 0.12, yoyo: true, repeat: 3, ease: "power2.inOut", immediateRender: false }, T.flashAt);
+        }
+      });
 
       window.__timelines = window.__timelines || {};
       window.__timelines["main"] = tl;

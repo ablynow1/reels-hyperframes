@@ -23,9 +23,10 @@ from common import die, load_json, need, run, work_paths
 def moments(cfg, D):
     E = cfg.get("effects", {})
     t = {0.25}
-    for name, eff in E.items():
-        if not eff:
-            continue
+    items = [(n, e) for n, v in E.items() for e in (v if isinstance(v, list) else [v] if v else [])]
+    for name, eff in items:
+        for st in eff.get("steps", []):
+            t.add(st + 0.4)
         if "in" in eff:
             t |= {eff["in"] + 0.15, eff["in"] + 0.6}
         if "out" in eff:
@@ -64,7 +65,8 @@ def main():
         hf = Path(__file__).with_name("hf.py")
         code = subprocess.run([sys.executable, str(hf), str(p["work"]), "snapshot", "--at", ",".join(f"{x:g}" for x in ts),
                                "--no-end", "-o", "snaps_review"]).returncode
-        print(f"\nFolha: {p['project'] / 'snaps_review' / 'contact-sheet.jpg'}  (na ordem dos tempos acima)")
+        sheets = sorted((p["project"] / "snaps_review").glob("contact-sheet*.jpg"))
+        print("\nFolha(s): " + "  ".join(str(x) for x in sheets) + "  (na ordem dos tempos acima)")
         sys.exit(code)
 
     need("ffmpeg", "Instale o FFmpeg.")

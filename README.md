@@ -14,7 +14,8 @@ Você só pede, em português, e o Claude:
 6. confere os quadros em cada troca de efeito, ajusta posições e renderiza o MP4 1080×1920;
 7. (opcional) dá o acabamento: borrão de movimento nos socos de câmera e grão de filme.
 
-Também funciona com **gravação de tela narrada** (modo tela: corta a região certa da tela, tira barra de
+Faz Reels curto (~15 s, escolhendo o melhor trecho) ou edita o **vídeo inteiro** (30–60 s). Também
+funciona com **gravação de tela narrada** (modo tela: corta a região certa da tela, tira barra de
 menu e notificações, e põe os efeitos por cima).
 
 ## Efeitos
@@ -25,6 +26,9 @@ menu e notificações, e põe os efeitos por cima).
 - **Camadas de vidro 3D**: a cena gira e se separa em fundo / cartão / pessoa, depois junta de novo
 - **Moldura + painel**: a pessoa vai para uma moldura e aparecem manchete e cartões ao lado
 - **Anel de porcentagem** enchendo por trás da cabeça, com contador na legenda
+- **Ilustração explicativa**: um painel com desenho (SVG) que vai se montando no tempo da fala
+- **Tabela / ranking**: posições entrando uma a uma, com a campeã em dourado
+- **Palavra gigante na frente** da pessoa, para vídeos em que a cabeça ocupa o topo da tela
 - **Legenda palavra por palavra** com destaques em amarelo, verde e vermelho
 - **Efeitos sonoros** automáticos (whoosh, pop, impacto, riser, brilho)
 - **Acabamento opcional**: borrão de movimento e grão de filme; limpeza leve de ruído na voz

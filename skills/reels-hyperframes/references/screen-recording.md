@@ -34,9 +34,11 @@ que importa. Confirme com a pessoa antes de seguir (a skill foi pensada para que
    elemento por cima e posicione numa área vazia.
 
 5. **Posições**: nada de "zona da cabeça"; o cuidado agora é **não cobrir o que a tela mostra**. Ponha
-   textos gigantes e cartões em áreas vazias (topo, laterais brancas) e confira no snapshot.
+   textos gigantes e cartões em áreas vazias **dentro da área segura** (`references/safe-zone.md`: y ≥ 300,
+   x entre 120 e 960) e confira no snapshot e no `celular.jpg`. Lembre que a faixa de cima (y < 300) e as
+   laterais somem no celular: o recorte da tela também tem que deixar o que importa longe delas.
 
-6. **Legendas**: continuam em y ≈ 1250–1340. Se a parte importante da tela estiver ali, mude o recorte
+6. **Legendas**: continuam em y ≈ 1170–1290. Se a parte importante da tela estiver ali, mude o recorte
    (outro `--crop`) em vez de mover a legenda.
 
 7. **Render** (passo 11) com `--video-frame-format png` para o texto da interface ficar nítido.

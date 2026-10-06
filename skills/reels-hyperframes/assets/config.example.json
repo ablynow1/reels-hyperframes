@@ -1,20 +1,21 @@
 {
-  "_sobre": "Config real do Reels de exemplo: vídeo 'A Appmax é um gateway seguro?' (youtube.com/watch?v=3Y6isKPyReU), pedaços 445.05-450.88 e 453.52-462.55, corte com --crop-x 460.",
+  "_sobre": "Config real do Reels de exemplo: vídeo 'A Appmax é um gateway seguro?' (youtube.com/watch?v=3Y6isKPyReU), pedaços 445.05-450.88 e 453.52-462.55, corte com --crop-x 460. v1.3: posições dentro da área segura; como é um close, balões e palavra gigante vão na frente da pessoa.",
   "duration": 14.86,
   "fill": "#e3d2c5",
   "camera": { "punches": [5.31, 13.07] },
   "counter": { "values": ["12%", "27%", "43%", "58%", "71%", "82%", "88%", "90%"], "step": 0.09 },
   "effects": {
     "bubbles": {
+      "front": true,
       "out": 2.62,
       "items": [
-        { "text": "qual plataforma você usa?", "at": 0.3, "left": 24, "top": 470, "width": 330, "rot": -3, "tail": "r" },
-        { "text": "qual você indica?", "at": 0.95, "left": 44, "top": 190, "width": 270, "rot": 2, "tail": "r" },
-        { "text": "é confiável?", "at": 1.6, "left": 34, "top": 900, "width": 300, "rot": -2, "tail": "r" }
+        { "text": "qual plataforma você usa?", "at": 0.3, "left": 150, "top": 340, "width": 320, "rot": -3, "tail": "r" },
+        { "text": "qual você indica?", "at": 0.95, "left": 560, "top": 410, "width": 280, "rot": 2, "tail": "l" },
+        { "text": "é confiável?", "at": 1.6, "left": 150, "top": 860, "width": 250, "rot": -2, "tail": "r" }
       ]
     },
-    "bigSymbol": { "text": "?", "in": 2.72, "out": 4.6, "left": 10, "top": 110, "size": 980, "color": "#6a2ee8" },
-    "bigWord": { "text": "APPMAX", "at": 5.31, "out": 5.95, "top": -10, "size": 300 },
+    "bigSymbol": { "text": "?", "in": 2.72, "out": 4.6, "left": 180, "top": 335, "size": 560, "color": "#6a2ee8" },
+    "bigWord": { "text": "APPMAX", "at": 5.31, "out": 5.95, "front": true },
     "glass": {
       "in": 5.83,
       "out": 8.25,
@@ -24,17 +25,14 @@
       "icon": "card",
       "sub": "CARTÃO DE CRÉDITO",
       "subAt": 7.91,
-      "left": 30,
+      "left": 40,
       "top": 540,
-      "width": 420,
+      "width": 300,
       "angle": 24
     },
     "frame": {
       "in": 8.62,
       "out": 12.92,
-      "x": 440,
-      "y": 420,
-      "w": 540,
       "headline": "OUTROS GATEWAYS",
       "cards": [
         { "t1": "Pagamento", "t2": "RECUSADO", "kind": "bad", "at": 9.09 },
@@ -44,7 +42,7 @@
       "alertAt": 11.67,
       "panelOut": 12.62
     },
-    "ring": { "in": 13.05, "drawAt": 13.1, "drawDur": 1.15, "percent": 90, "cx": 540, "cy": 620, "r": 430 }
+    "ring": { "in": 13.05, "drawAt": 13.1, "drawDur": 1.15, "percent": 90, "cx": 540, "cy": 675, "r": 340 }
   },
   "sfx": "auto",
   "captions": [

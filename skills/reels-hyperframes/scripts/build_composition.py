@@ -5,6 +5,7 @@
 - duração e cor de fundo: do config ou do clip.json
 - efeitos sonoros: "sfx": "auto" (padrão) monta o som a partir dos efeitos; ou uma lista manual
 - valida tempos e sobreposições antes de gerar
+- área segura (common.SAFE_ZONE): o modelo encaixa textos e cartões sozinho; aqui só avisa o que vai mexer
 
 Uso:
   python3 build_composition.py <pasta-de-trabalho>
@@ -15,7 +16,7 @@ import re
 import shutil
 import sys
 
-from common import SFX_DURATIONS, SKILL_DIR, die, find_sfx_dir, load_json, work_paths
+from common import SAFE_ZONE, SFX_DURATIONS, SKILL_DIR, die, find_sfx_dir, load_json, work_paths
 
 SCENE_EFFECTS = ("glass", "frame")
 
@@ -115,8 +116,51 @@ def validate(cfg, D):
         if g["e"] <= g["s"]:
             warn.append(f"legenda {i} termina antes de começar")
         if len(" ".join(w[0] for w in g["w"])) > (12 if g.get("big") else 15):
-            warn.append(f"legenda {i} ('{' '.join(w[0] for w in g['w'])}') pode quebrar em 2 linhas; divida o bloco")
+            warn.append(f"legenda {i} ('{' '.join(w[0] for w in g['w'])}') é longa: pode sair com fonte menor; divida o bloco")
     return warn
+
+
+def word_in_front(W, safe):
+    """bigWord na frente: pedido no config, ou "por trás" acima da área segura (o modelo converte)."""
+    top = W.get("top")
+    return bool(W.get("front")) or (W.get("front") is None and isinstance(top, (int, float)) and top < safe["top"])
+
+
+def safe_notes(cfg):
+    """O que o modelo vai mexer para caber na área segura (o encaixe é automático; isto só avisa)."""
+    S = cfg["safe"]
+    E = cfg.get("effects", {})
+    notes = []
+
+    def low(v, lim):
+        return isinstance(v, (int, float)) and v < lim
+
+    for b in (E.get("bubbles") or {}).get("items", []):
+        if low(b.get("left"), S["left"]) or low(b.get("top"), S["top"]):
+            notes.append(f"balão '{b.get('text', '')}' (left {b.get('left')}, top {b.get('top')}) vai para dentro da área segura;"
+                         " confira se não ficou escondido atrás da cabeça")
+    for s in arr(E.get("bigSymbol")):
+        if low(s.get("left"), S["left"]) or low(s.get("top"), S["top"]) or s.get("size", 980) * 1.1 > S["bottom"] - S["top"]:
+            notes.append(f"bigSymbol '{s.get('text', '')}' vai encolher/entrar na área segura (x ≥ {S['left']}, y ≥ {S['top']})")
+    for w in arr(E.get("bigWord")):
+        if not w.get("front") and word_in_front(w, S):
+            notes.append(f"bigWord '{w.get('text', '')}' (top {w.get('top')}): acima da cabeça não cabe na área segura —"
+                         " vai na frente da pessoa, logo acima das legendas (como \"front\": true)")
+    F = E.get("frame")
+    if F:
+        if low(F.get("headlineTop"), S["top"]) or low(F.get("panelX"), S["left"]) or low(F.get("y"), S["top"]) or (
+            F.get("x", 0) + F.get("w", 500) > S["right"]
+        ):
+            notes.append(f"frame: manchete desce para y {S['top']}, moldura fica entre x {S['left']} e {S['right']} e os cartões"
+                         " entre a margem e a moldura")
+    R = E.get("ring")
+    if R and (R.get("r", 340) > 350 or R.get("cy", 620) - R.get("r", 340) < S["top"] - 30):
+        notes.append(f"ring: o anel encolhe/desce para caber inteiro (raio até ~345, topo em y ≥ {S['top']})")
+    for name in ("diagram", "table"):
+        for j, P in enumerate(arr(E.get(name))):
+            if low(P.get("top"), S["top"]):
+                notes.append(f"{name}[{j}]: painel desce para y {S['top']} (e encolhe se não couber acima das legendas)")
+    return notes
 
 
 def main():
@@ -131,6 +175,7 @@ def main():
     if D <= 0:
         die("sem duração: rode make_clip.py ou coloque \"duration\" no config.json")
     cfg["duration"] = D
+    cfg["safe"] = {**SAFE_ZONE, **(cfg.get("safe") or {})}
     fill = cfg.get("fill") or clip.get("fill") or "#cccccc"
     if not re.match(r"^#[0-9a-fA-F]{6}$", fill):
         die(f"cor de fundo inválida: {fill}")
@@ -199,13 +244,13 @@ def main():
     def need(a, b):
         wins.append([max(0.0, a - 0.3), min(D, b + 0.45)])
     B = E.get("bubbles")
-    if B and B.get("items"):
+    if B and B.get("items") and not B.get("front"):
         need(min(i["at"] for i in B["items"]), B["out"] + 0.3)
     for S in arr(E.get("bigSymbol")):
         if not S.get("front"):
             need(S["in"], S["out"] + 0.3)
     for W in arr(E.get("bigWord")):
-        if not W.get("front"):
+        if not word_in_front(W, cfg["safe"]):
             need(W["at"], W["out"] + 0.25)
     if E.get("ring"):
         need(E["ring"]["in"], E["ring"].get("out", D) + 0.3)
@@ -225,14 +270,17 @@ def main():
         for k, (a, b) in enumerate(merged)
     )
     warnings = validate(cfg, D)
+    notes = safe_notes(cfg)
     template = (SKILL_DIR / "assets" / "template.html").read_text(encoding="utf-8")
+    # "<" escapado: um SVG embutido com "</script>" ou "<!--" não pode fechar o <script> do modelo
+    config_js = json.dumps({k: v for k, v in cfg.items() if k != "sfx"}, ensure_ascii=False).replace("<", "\\u003c")
     html = (
         template.replace("__DURATION__", f"{D}")
         .replace("__FILL__", fill)
         .replace("__SFX__", "\n".join(lines))
         .replace("__PLATE__", plate)
         .replace("__PERSON__", person)
-        .replace("__CONFIG__", json.dumps({k: v for k, v in cfg.items() if k != "sfx"}, ensure_ascii=False))
+        .replace("__CONFIG__", config_js)
     )
     (p["project"] / "index.html").write_text(html, encoding="utf-8")
 
@@ -245,6 +293,10 @@ def main():
         print("\nAVISOS:")
         for w in warnings:
             print("  - " + w)
+    if notes:
+        print("\nÁREA SEGURA (o modelo ajusta sozinho; confira em snaps_review/celular.jpg depois do review.py):")
+        for n in notes:
+            print("  - " + n)
     print(f"\nPróximo: python3 {SKILL_DIR}/scripts/hf.py <pasta-de-trabalho> check")
 
 

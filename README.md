@@ -11,12 +11,33 @@ Você só pede, em português, e o Claude:
 3. corta, reenquadra em 9:16 e padroniza o volume da voz;
 4. recorta a pessoa do fundo (IA local) para animar coisas **por trás dela**;
 5. monta os efeitos em cima da fala, com legenda palavra por palavra e efeitos sonoros;
-6. confere os quadros em cada troca de efeito, ajusta posições e renderiza o MP4 1080×1920;
-7. (opcional) dá o acabamento: borrão de movimento nos socos de câmera e grão de filme.
+6. encaixa todo texto, cartão e painel na **área segura do Reels** (nada embaixo da interface do
+   Instagram nem cortado em celular alto, como o iPhone 16);
+7. confere os quadros em cada troca de efeito, ajusta posições e renderiza o MP4 1080×1920;
+8. (opcional) dá o acabamento: borrão de movimento nos socos de câmera e grão de filme.
 
 Faz Reels curto (~15 s, escolhendo o melhor trecho) ou edita o **vídeo inteiro** (30–60 s). Também
 funciona com **gravação de tela narrada** (modo tela: corta a região certa da tela, tira barra de
 menu e notificações, e põe os efeitos por cima).
+
+## Novidades da v1.3 — área segura (100% legível em qualquer celular)
+
+No teste publicado, vários elementos ficavam embaixo da interface do Instagram ou cortados: palavra
+gigante atrás do cabeçalho "Reels", cartões e tabela cortados nas laterais e legenda longa embaixo do
+botão de curtir. Em tela mais alta que 9:16 (iPhone 16, Android 20:9) o Instagram dá zoom para preencher
+a altura e perde ~100 px de cada lado. Agora:
+
+- o modelo mede cada texto com a fonte carregada e **encaixa tudo na área segura** antes do render:
+  topo a partir de y 300, laterais entre x 120 e 960, coluna de botões livre (x > 860 abaixo de y 900),
+  legendas em y 1170–1290 — contando até o zoom dos socos de câmera;
+- texto que não cabe diminui a fonte sozinho (e o check avisa se precisar encurtar);
+- palavra gigante e balões ganharam o modo **na frente da pessoa** (`"front": true`), o certo para close;
+  palavra gigante configurada "acima da cabeça" (que caía embaixo do cabeçalho) vira "na frente" sozinha;
+- a revisão gera a folha **`celular.jpg`**, com as faixas onde o Instagram cobre ou corta marcadas em
+  vermelho;
+- detalhes e números em `skills/reels-hyperframes/references/safe-zone.md`.
+
+Projetos feitos com a versão anterior: é só gerar o `index.html` de novo e renderizar.
 
 ## Efeitos
 
@@ -74,6 +95,30 @@ mkdir -p ~/.claude/skills && cp -r reels-hyperframes/skills/reels-hyperframes ~/
 ```
 
 Depois abra uma sessão nova do Claude Code.
+
+## Atualizar para a versão mais nova
+
+**Se instalou como plugin (opção 1)**, dentro do Claude Code: `/plugin` → aba **Installed** →
+`reels-hyperframes` → **Update now**. Ou, no terminal:
+```bash
+claude plugin update reels-hyperframes@reels-hyperframes
+```
+Depois rode `/reload-plugins` (ou abra uma sessão nova). Para receber as próximas versões sozinho:
+`/plugin` → aba **Marketplaces** → `reels-hyperframes` → **Enable auto-update**.
+
+**Se copiou a pasta (opção 2)**, na pasta onde você clonou o repositório:
+```bash
+cd reels-hyperframes && git pull
+```
+```bash
+rm -rf ~/.claude/skills/reels-hyperframes && cp -r skills/reels-hyperframes ~/.claude/skills/
+```
+
+**Ou só peça ao Claude**, do seu jeito:
+
+> atualiza minha skill reels-hyperframes com a versão mais nova do GitHub (ablynow1/reels-hyperframes)
+
+Para saber se já está na v1.3: a pasta da skill tem o arquivo `references/safe-zone.md`.
 
 ## Como usar
 

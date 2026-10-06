@@ -2,7 +2,8 @@
 """Folha de contato de um vídeo (vários quadros numa imagem) para revisar o render.
 
 Uso:
-  python3 sheet.py <video.mp4> [--fps 2] [--from 0] [--to 0] [--cols 6] [--out folha.jpg]
+  python3 sheet.py <video.mp4> [--fps 2] [--from 0] [--to 0] [--cols 6] [--out folha.jpg] [--celular]
+  --celular pinta de vermelho o que fica fora da área segura do Reels (topo, base, laterais, botões)
 """
 
 import argparse
@@ -10,6 +11,7 @@ import math
 from pathlib import Path
 
 from common import need, run, video_info
+from review import safe_overlay
 
 
 def main():
@@ -21,6 +23,7 @@ def main():
     ap.add_argument("--cols", type=int, default=6)
     ap.add_argument("--width", type=int, default=180)
     ap.add_argument("--out", default=None)
+    ap.add_argument("--celular", action="store_true", help="marcar a área segura do Reels")
     a = ap.parse_args()
     need("ffmpeg", "Instale o FFmpeg.")
     v = Path(a.video)
@@ -29,9 +32,10 @@ def main():
     n = max(1, int(math.ceil((t1 - a.t0) * a.fps)))
     rows = int(math.ceil(n / a.cols))
     tag = f"_{a.t0:g}-{t1:g}s" if (a.t0 > 0 or a.t1 > a.t0) else ""
-    out = Path(a.out) if a.out else v.with_name(f"{v.stem}_folha{tag}.jpg")
+    out = Path(a.out) if a.out else v.with_name(f"{v.stem}_folha{tag}{'_celular' if a.celular else ''}.jpg")
+    zones = safe_overlay() + "," if a.celular else ""
     run(["ffmpeg", "-v", "error", "-y", "-ss", a.t0, "-t", t1 - a.t0, "-i", v,
-         "-vf", f"fps={a.fps},scale={a.width}:-2,tile={a.cols}x{rows}:padding=4:color=white", "-frames:v", "1", out])
+         "-vf", f"fps={a.fps},{zones}scale={a.width}:-2,tile={a.cols}x{rows}:padding=4:color=white", "-frames:v", "1", out])
     print(f"Folha: {out}  ({n} quadros, {a.fps}/s, de {a.t0:.1f}s a {t1:.1f}s)")
 
 

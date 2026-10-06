@@ -4,20 +4,26 @@
 Lê o config.json e escolhe sozinho os momentos que mais quebram: entrada e saída de cada efeito,
 socos de câmera e o fim. Assim nenhuma transição fica sem ser olhada.
 
+Além da folha normal, monta a folha "celular": os mesmos quadros com a área segura marcada —
+faixas vermelhas onde a interface do Instagram cobre o vídeo (topo, base, coluna de botões) ou onde
+o celular alto (iPhone 16 etc.) corta as laterais. Nenhum texto, número ou cartão pode encostar nelas.
+
 Uso:
   python3 review.py <pasta>            -> snapshot do HyperFrames nesses tempos (antes do render)
   python3 review.py <pasta> --render   -> quadros do vídeo renderizado nesses tempos (depois do render)
-Saída: project/snaps_review/contact-sheet.jpg  ou  project/renders/revisao_trocas.jpg
+Saída: project/snaps_review/contact-sheet.jpg + celular.jpg
+   ou  project/renders/revisao_trocas.jpg + revisao_celular.jpg
 """
 
 import argparse
 import math
-import os
+import shutil
 import subprocess
 import sys
+import time
 from pathlib import Path
 
-from common import die, load_json, need, run, work_paths
+from common import SAFE_ZONE, die, load_json, need, run, work_paths
 
 
 def moments(cfg, D):
@@ -47,6 +53,35 @@ def moments(cfg, D):
     return out
 
 
+def safe_overlay(safe=SAFE_ZONE, w=1080, h=1920):
+    """Filtro do FFmpeg que pinta de vermelho o que fica fora da área segura (references/safe-zone.md)."""
+    s = safe
+    red = "red@0.32"
+    boxes = [
+        (0, 0, w, s["top"]),  # status, Dynamic Island, cabeçalho "Reels"
+        (0, s["bottom"], w, h - s["bottom"]),  # @ do perfil, legenda do post, música
+        (0, s["top"], s["left"], s["bottom"] - s["top"]),  # corte lateral em celular alto
+        (s["right"], s["top"], w - s["right"], s["bottom"] - s["top"]),
+        (s["railX"], s["railY"], s["right"] - s["railX"], s["bottom"] - s["railY"]),  # botões
+    ]
+    f = [f"drawbox=x={x}:y={y}:w={bw}:h={bh}:color={red}:t=fill" for x, y, bw, bh in boxes]
+    f.append(f"drawbox=x=0:y={s['capTop']}:w={w}:h=4:color=yellow@0.85:t=fill")  # topo da faixa das legendas
+    return ",".join(f)
+
+
+def contact_sheet(inputs, out, phone=False, cols=6):
+    """Uma folha com um quadro por entrada (cada entrada = argumentos de entrada do FFmpeg)."""
+    tmp = out.parent / f"_{out.stem}"
+    tmp.mkdir(parents=True, exist_ok=True)
+    vf = (safe_overlay() + "," if phone else "") + "scale=216:-2"
+    for i, args in enumerate(inputs):
+        run(["ffmpeg", "-v", "error", "-y", *args, "-frames:v", "1", "-vf", vf, tmp / f"{i:03d}.png"])
+    rows = int(math.ceil(len(inputs) / cols))
+    run(["ffmpeg", "-v", "error", "-y", "-framerate", "1", "-i", tmp / "%03d.png",
+         "-vf", f"tile={cols}x{rows}:padding=4:color=white", "-frames:v", "1", out])
+    shutil.rmtree(tmp, ignore_errors=True)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("work")
@@ -60,35 +95,35 @@ def main():
     D = float(cfg.get("duration") or load_json(p["clip"], {}).get("duration") or 0)
     ts = moments(cfg, D)
     print(f"{len(ts)} momentos: " + ", ".join(f"{x:g}" for x in ts))
+    need("ffmpeg", "Instale o FFmpeg.")
 
     if not a.render:
         hf = Path(__file__).with_name("hf.py")
+        snaps = p["project"] / "snaps_review"
+        started = time.time() - 1
         code = subprocess.run([sys.executable, str(hf), str(p["work"]), "snapshot", "--at", ",".join(f"{x:g}" for x in ts),
                                "--no-end", "-o", "snaps_review"]).returncode
-        sheets = sorted((p["project"] / "snaps_review").glob("contact-sheet*.jpg"))
+        sheets = sorted(snaps.glob("contact-sheet*.jpg"))
+        # só os quadros desta rodada (a pasta pode ter quadros de revisões anteriores)
+        frames = sorted(f for f in snaps.glob("frame-*.png") if f.stat().st_mtime >= started)
+        if frames:
+            contact_sheet([["-i", f] for f in frames], snaps / "celular.jpg", phone=True)
+            sheets.append(snaps / "celular.jpg")
         print("\nFolha(s): " + "  ".join(str(x) for x in sheets) + "  (na ordem dos tempos acima)")
+        if frames:
+            print("celular.jpg: faixa vermelha = a interface cobre ou o celular corta; linha amarela = topo das legendas."
+                  " Nada de texto, número ou cartão encostando no vermelho.")
         sys.exit(code)
 
-    need("ffmpeg", "Instale o FFmpeg.")
     video = p["project"] / a.video
     if not video.exists():
         die(f"não achei {video}")
-    tmp = p["project"] / "renders" / "_rev"
-    tmp.mkdir(parents=True, exist_ok=True)
-    frames = []
-    for i, t in enumerate(ts):
-        f = tmp / f"{i:03d}.png"
-        run(["ffmpeg", "-v", "error", "-y", "-ss", f"{t:.3f}", "-i", video, "-frames:v", "1", "-vf", "scale=216:-2", f])
-        frames.append(f)
-    cols = 6
-    rows = int(math.ceil(len(frames) / cols))
+    inputs = [["-ss", f"{t:.3f}", "-i", video] for t in ts]
     out = p["project"] / "renders" / "revisao_trocas.jpg"
-    run(["ffmpeg", "-v", "error", "-y", "-framerate", "1", "-i", tmp / "%03d.png",
-         "-vf", f"tile={cols}x{rows}:padding=4:color=white", "-frames:v", "1", out])
-    for f in frames:
-        os.remove(f)
-    tmp.rmdir()
-    print(f"\nFolha: {out}  (na ordem dos tempos acima, {cols} por linha)")
+    phone = p["project"] / "renders" / "revisao_celular.jpg"
+    contact_sheet(inputs, out)
+    contact_sheet(inputs, phone, phone=True)
+    print(f"\nFolhas: {out}\n        {phone}  (na ordem dos tempos acima, 6 por linha; vermelho = fora da área segura)")
 
 
 if __name__ == "__main__":

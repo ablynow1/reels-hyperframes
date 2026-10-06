@@ -43,6 +43,19 @@ SFX_DURATIONS = {
 }
 DEFAULT_SFX = ["whoosh.mp3", "whoosh-short.mp3", "pop.mp3", "impact-bass-1.mp3", "sparkle.mp3", "riser.mp3"]
 
+# Área segura da tela 1080x1920 (references/safe-zone.md). Fora dela a interface do Instagram/TikTok/
+# Shorts cobre o vídeo, ou o celular corta: em tela alta (iPhone 16, Android 20:9) o Instagram dá zoom
+# para preencher a altura e perde ~100 px de cada lado. O template encaixa tudo aqui dentro sozinho.
+SAFE_ZONE = {
+    "top": 300,  # barra de status, Dynamic Island e cabeçalho "Reels" (o feed 4:5 também corta 285 px)
+    "bottom": 1440,  # @ do perfil, legenda do post, música e barra de navegação
+    "left": 120,  # corte lateral em celular alto
+    "right": 960,
+    "railX": 860,  # coluna de botões (curtir, comentar, compartilhar, áudio) à direita...
+    "railY": 900,  # ...da metade da tela para baixo
+    "capTop": 1170,  # topo da faixa das legendas (os outros textos ficam acima dela)
+}
+
 
 def die(msg):
     print(f"ERRO: {msg}", file=sys.stderr)

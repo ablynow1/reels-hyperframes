@@ -2,7 +2,9 @@
 <!--
   Modelo da skill reels-hyperframes. NÃO edite o index.html gerado à mão:
   edite o config.json do projeto e rode scripts/build_composition.py.
-  Placeholders preenchidos pelo builder: __DURATION__, __FILL__, __SFX__, __CONFIG__.
+  O builder preenche os marcadores entre dois sublinhados (DURATION, FILL, SFX, PLATE, PERSON, CONFIG).
+  Área segura: textos, números, cartões e painéis são medidos com as fontes carregadas e encaixados
+  dentro de SAFE antes do render (references/safe-zone.md).
 -->
 <html lang="pt-BR" data-resolution="portrait">
   <head>
@@ -128,7 +130,13 @@
         font-family: "Bebas Neue", sans-serif;
         line-height: 1;
         letter-spacing: 0.04em;
+        white-space: nowrap;
         opacity: 0;
+      }
+      /* o texto fica num span para medir a largura real e encaixar na área segura */
+      .bigword .t,
+      #headline .t {
+        display: inline-block;
       }
 
       .bigword.front {
@@ -159,21 +167,23 @@
         background: #05060a;
         opacity: 0;
       }
+      /* .panel é posicionado/animado; .pcard é o cartão visível (encolhe se não couber na altura) */
       .panel {
         position: absolute;
-        left: 40px;
-        right: 40px;
+        opacity: 0;
+      }
+      .pcard {
         padding: 36px 34px 30px;
         border-radius: 40px;
         background: rgba(16, 17, 24, 0.92);
         border: 2px solid rgba(255, 255, 255, 0.18);
         box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6);
         color: #fff;
-        opacity: 0;
+        transform-origin: 50% 0;
       }
       .panel .ptitle {
         font-family: "Bebas Neue", sans-serif;
-        font-size: 74px;
+        font-size: 64px;
         line-height: 1;
         letter-spacing: 0.02em;
       }
@@ -210,26 +220,26 @@
       .row {
         display: flex;
         align-items: center;
-        gap: 18px;
-        height: 74px;
-        padding: 0 22px;
+        gap: 16px;
+        height: 66px;
+        padding: 0 20px;
         border-radius: 18px;
         background: rgba(255, 255, 255, 0.06);
         border: 2px solid transparent;
         color: #e9ecf2;
         font-weight: 800;
-        font-size: 31px;
+        font-size: 28px;
         opacity: 0;
       }
       .row .rk {
         flex: none;
-        width: 52px;
-        height: 52px;
+        width: 48px;
+        height: 48px;
         border-radius: 50%;
         background: rgba(255, 255, 255, 0.12);
         font-weight: 900;
-        font-size: 26px;
-        line-height: 52px;
+        font-size: 24px;
+        line-height: 48px;
         text-align: center;
       }
       .row .nm {
@@ -241,12 +251,12 @@
       .row .vl {
         flex: none;
         font-family: "Bebas Neue", sans-serif;
-        font-size: 48px;
+        font-size: 44px;
         color: #ffd400;
       }
       .row.gold {
-        height: 92px;
-        font-size: 34px;
+        height: 82px;
+        font-size: 31px;
         color: #fff;
         background: linear-gradient(90deg, rgba(255, 212, 0, 0.3), rgba(255, 212, 0, 0.08));
         border-color: #ffd400;
@@ -275,7 +285,7 @@
       }
       #glass .k {
         font-family: "Bebas Neue", sans-serif;
-        font-size: 66px;
+        font-size: 58px;
         line-height: 1;
         letter-spacing: 0.01em;
       }
@@ -284,7 +294,9 @@
       }
       #glass svg {
         display: block;
-        margin: 26px 0 18px;
+        max-width: 100%;
+        height: auto;
+        margin: 22px 0 16px;
       }
       #glass .cc {
         font-weight: 900;
@@ -322,6 +334,10 @@
       #panel {
         position: absolute;
       }
+      #panel .pin {
+        width: max-content;
+        transform-origin: 0 0;
+      }
       .dcard {
         display: flex;
         align-items: center;
@@ -358,11 +374,13 @@
         font-weight: 700;
         font-size: 30px;
         color: #b9b9c4;
+        white-space: nowrap;
       }
       .dcard .t2 {
         font-weight: 900;
         font-size: 36px;
         letter-spacing: 0.02em;
+        white-space: nowrap;
       }
       .dcard.bad .t2 {
         color: #ff4d4d;
@@ -371,18 +389,18 @@
         color: #29e07a;
       }
 
-      /* Legendas */
+      /* Legendas (o topo da faixa vem de SAFE.capTop; a largura é encaixada antes da coluna de botões) */
       #caps {
         position: absolute;
         left: 0;
-        top: 1250px;
+        top: 1170px;
         width: 1080px;
         height: 240px;
       }
       .grp {
         position: absolute;
-        left: 60px;
-        right: 60px;
+        left: 0;
+        right: 0;
         top: 0;
         text-align: center;
         font-weight: 900;
@@ -402,6 +420,10 @@
           0 12px 26px rgba(0, 0, 0, 0.55);
         opacity: 0;
         visibility: hidden;
+      }
+      .grp .ln {
+        display: inline-block;
+        white-space: nowrap;
       }
       .grp .w {
         display: inline-block;
@@ -508,8 +530,18 @@ __SFX__
 
       const D = CONFIG.duration;
       const E = CONFIG.effects || {};
+      // Área segura (px da tela 1080×1920): fora dela a interface do app cobre o vídeo ou o celular corta
+      // as laterais. Vem do builder (scripts/common.py → SAFE_ZONE); estes são os valores de reserva.
+      const SAFE = Object.assign(
+        { top: 300, bottom: 1440, left: 120, right: 960, railX: 860, railY: 900, capTop: 1170 },
+        CONFIG.safe || {}
+      );
       const $ = (id) => document.getElementById(id);
+      const ROOT = $("root");
+      const CAM_EL = $("cam");
       const px = (v) => (typeof v === "number" ? v + "px" : v);
+      const num = (v, d) => (typeof v === "number" && isFinite(v) ? v : d);
+      const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
       const esc = (s) =>
         String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
       const mk = (tag, cls, parent, html) => {
@@ -522,295 +554,575 @@ __SFX__
       const mid = $("mid");
       const arr = (v) => (Array.isArray(v) ? v : v ? [v] : []);
       const tl = gsap.timeline({ paused: true });
-
-      // ---------------------------------------------------------------- legendas
-      const COUNTER = (CONFIG.counter && CONFIG.counter.values) || [];
-      const COUNTER_STEP = (CONFIG.counter && CONFIG.counter.step) || 0.09;
-      const caps = $("caps");
-      (CONFIG.captions || []).forEach((g, gi) => {
-        const el = mk("div", "grp" + (g.big ? " big" : ""), caps);
-        el.id = "g" + gi;
-        g.w.forEach(([txt, t, cls], wi) => {
-          const span = mk("span", "w" + (cls ? " " + cls : ""), el);
-          span.id = "g" + gi + "w" + wi;
-          if (txt === "#NUM") {
-            span.classList.add("num");
-            if (CONFIG.counter && CONFIG.counter.width) span.style.width = CONFIG.counter.width + "em";
-            COUNTER.forEach((n, ni) => {
-              const b = mk("b", "", span, esc(n));
-              b.id = "n" + ni;
-              tl.set(b, { opacity: 1 }, t + ni * COUNTER_STEP);
-              if (ni < COUNTER.length - 1) tl.set(b, { opacity: 0 }, t + (ni + 1) * COUNTER_STEP);
-            });
-          } else {
-            span.textContent = txt;
-          }
-        });
-        tl.set(el, { visibility: "visible" }, g.s);
-        tl.fromTo(el, { opacity: 0, scale: 0.86 }, { opacity: 1, scale: 1, duration: 0.14, ease: "back.out(2)" }, g.s);
-        g.w.forEach(([, t], wi) => {
-          tl.fromTo("#g" + gi + "w" + wi, { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.1, ease: "power2.out" }, t);
-        });
-        if (gi < CONFIG.captions.length - 1) {
-          tl.to(el, { opacity: 0, duration: 0.07, ease: "power2.in" }, g.e - 0.07);
-          tl.set(el, { opacity: 0, visibility: "hidden" }, g.e);
-        }
-      });
-
-      // ---------------------------------------------------------------- câmera
       const CAM = CONFIG.camera || {};
       const punches = (CAM.punches || []).slice().sort((a, b) => a - b);
-      tl.fromTo("#cam", { scale: 1.35, filter: "blur(14px)" }, { scale: 1, filter: "blur(0px)", duration: 0.45, ease: "power3.out" }, 0);
-      tl.set("#cam", { filter: "none" }, 0.46);
-      tl.fromTo("#flash", { opacity: 0.55 }, { opacity: 0, duration: 0.35, ease: "power2.out" }, 0);
-      const pushOn = CAM.push !== false;
-      if (pushOn) {
-        const pushEnd = punches.length ? punches[0] - 0.05 : Math.min(D - 0.1, 6);
-        if (pushEnd > 0.8) {
-          tl.fromTo("#cam", { scale: 1 }, { scale: 1.05, duration: pushEnd - 0.46, ease: "none", immediateRender: false }, 0.46);
-        }
+
+      // ---------------------------------------------------------------- fontes
+      // Medir texto antes de a fonte carregar dá larguras erradas: a cena só é montada depois disso.
+      function fontsReady() {
+        if (!document.fonts || !document.fonts.load) return Promise.resolve();
+        const chars = new Set("0123456789%");
+        const walk = (v, k) => {
+          if (k === "svgMarkup") return;
+          if (typeof v === "string") for (const c of v) chars.add(c);
+          else if (Array.isArray(v)) v.forEach((x) => walk(x));
+          else if (v && typeof v === "object") Object.keys(v).forEach((kk) => walk(v[kk], kk));
+        };
+        walk(CONFIG.captions);
+        walk(E);
+        walk(CONFIG.counter);
+        const text = Array.from(chars).join("");
+        const specs = ['900 80px "Montserrat"', '800 30px "Montserrat"', '700 30px "Montserrat"', '400 80px "Bebas Neue"'];
+        return Promise.all(specs.map((s) => document.fonts.load(s, text).catch(() => null))).then(() => document.fonts.ready);
       }
-      punches.forEach((t, i) => {
-        const from = i === 0 && pushOn ? 1.05 : 1;
-        const sign = i % 2 ? -1 : 1;
-        tl.fromTo("#cam", { scale: from }, { scale: from * 1.1, duration: 0.14, ease: "power3.out", immediateRender: false }, t);
-        tl.fromTo("#cam", { x: 0, y: 0 }, { x: 14 * sign, y: -10 * sign, duration: 0.04, yoyo: true, repeat: 5, ease: "none", immediateRender: false }, t);
-        tl.set("#cam", { x: 0, y: 0 }, t + 0.25);
-        tl.fromTo("#flash", { opacity: 0.35 }, { opacity: 0, duration: 0.25, ease: "power2.out", immediateRender: false }, t);
-        const back = t + (CAM.punchHold || 0.5);
-        const backDur = Math.min(0.5, D - back - 0.02);
-        if (backDur > 0.05) {
-          tl.fromTo("#cam", { scale: from * 1.1 }, { scale: 1, duration: backDur, ease: "power3.inOut", immediateRender: false }, back);
+
+      // ---------------------------------------------------------------- área segura
+      // Cada texto/cartão é medido pelo layout (offset*, que não sofre com as animações) e encaixado na
+      // área segura. O zoom da câmera entra na conta: enquanto o elemento está na tela a câmera vai do
+      // menor ao maior zoom (e treme nos socos) — a caixa tem que caber nos dois extremos. A câmera cresce
+      // a partir do topo central (540, 0): no zoom maior o texto vai para os lados e para baixo; quando
+      // ela volta, sobe. Os ajustes ficam em window.__safeZone e no console.
+      const SAFE_LOG = [];
+      const NOCAM = { S: 1, s: 1, shake: false };
+      const INK = 8; // contorno e sombra do texto
+      const r0 = (v) => Math.round(v);
+      const note = (name, msg) => SAFE_LOG.push(name + ": " + msg);
+
+      function lbox(el) {
+        let x = 0;
+        let y = 0;
+        let n = el;
+        while (n && n !== ROOT) {
+          x += n.offsetLeft;
+          y += n.offsetTop;
+          n = n.offsetParent;
         }
+        return { x0: x, y0: y, x1: x + el.offsetWidth, y1: y + el.offsetHeight };
+      }
+      // menor (s) e maior (S) zoom da câmera entre a e b (segundos) e se há tremida de soco no intervalo
+      function camRange(a, b) {
+        const t0 = Math.max(0.5, a); // a entrada com desfoque (0–0,45 s) não conta
+        const t1 = Math.min(D, Math.max(t0, b));
+        let S = 0;
+        let s = 99;
+        for (let t = t0; t <= t1 + 1e-6; t += 0.05) {
+          tl.seek(t, true);
+          const k = Number(gsap.getProperty(CAM_EL, "scale")) || 1;
+          S = Math.max(S, k);
+          s = Math.min(s, k);
+        }
+        tl.seek(0, true);
+        if (!S) S = s = 1;
+        return { S, s, shake: punches.some((p) => p <= t1 && p + 0.25 >= t0) };
+      }
+      // caixa na tela nos dois extremos do zoom (origem 50% 0) com a tremida
+      function onScreen(b, cam, ink) {
+        const xs = [];
+        const ys = [];
+        for (const k of [cam.s, cam.S]) {
+          xs.push(540 + (b.x0 - ink - 540) * k, 540 + (b.x1 + ink - 540) * k);
+          ys.push((b.y0 - ink) * k, (b.y1 + ink) * k);
+        }
+        const mx = cam.shake ? 14 : 0;
+        const my = cam.shake ? 10 : 0;
+        return { x0: Math.min(...xs) - mx, x1: Math.max(...xs) + mx, y0: Math.min(...ys) - my, y1: Math.max(...ys) + my };
+      }
+      // onde cada tipo pode ficar: "text" acima das legendas e fora da coluna de botões; "deco" (símbolo,
+      // anel) só dentro das margens; "caption" só na largura (a altura é a faixa das legendas)
+      function zone(kind, box) {
+        if (kind === "caption") return { x0: SAFE.left, x1: SAFE.railX, y0: -1e9, y1: 1e9 };
+        const z = { x0: SAFE.left, x1: SAFE.right, y0: SAFE.top, y1: kind === "text" ? SAFE.capTop - 20 : SAFE.bottom };
+        if (kind === "text" && box.y1 > SAFE.railY) z.x1 = SAFE.railX;
+        return z;
+      }
+      const outside = (s, z) => s.x0 < z.x0 - 2 || s.x1 > z.x1 + 2 || s.y0 < z.y0 - 2 || s.y1 > z.y1 + 2;
+      const shift = (a0, a1, z0, z1) =>
+        a1 - a0 > z1 - z0 ? (z0 + z1) / 2 - (a0 + a1) / 2 : a0 < z0 ? z0 - a0 : a1 > z1 ? z1 - a1 : 0;
+      const fontSize = (el) => ({
+        get: () => parseFloat(getComputedStyle(el).fontSize) || 0,
+        set: (v) => {
+          el.style.fontSize = v + "px";
+        },
       });
-
-      // ---------------------------------------------------------------- balões por trás
-      if (E.bubbles && E.bubbles.items) {
-        const B = E.bubbles;
-        B.items.forEach((b, i) => {
-          const el = mk("div", "bubble " + (b.tail || "r"), mid, esc(b.text));
-          el.id = "b" + i;
-          el.style.left = px(b.left);
-          el.style.top = px(b.top);
-          if (b.width) el.style.width = px(b.width);
-          tl.fromTo(el, { opacity: 0, scale: 0.4, y: 40, rotation: 0 }, { opacity: 1, scale: 1, y: 0, rotation: b.rot || 0, duration: 0.35, ease: "back.out(2.2)" }, b.at);
-          const floatDur = Math.max(0.3, B.out - (b.at + 0.35) - 0.05);
-          tl.to(el, { y: -18, duration: floatDur, ease: "sine.inOut" }, b.at + 0.35);
-        });
-        tl.to(".bubble", { opacity: 0, scale: 0.6, duration: 0.25, ease: "power2.in", stagger: 0.04 }, B.out);
-      }
-
-      // ---------------------------------------------------------------- símbolo gigante (por trás ou na frente)
-      arr(E.bigSymbol).forEach((S, i) => {
-        const el = mk("div", "bigsym", S.front ? $("front") : mid, esc(S.text));
-        el.id = "bigsym" + i;
-        el.style.left = px(S.left);
-        el.style.top = px(S.top);
-        el.style.fontSize = px(S.size || 980);
-        el.style.color = S.color || "#6a2ee8";
-        el.style.textShadow = "0 0 70px " + (S.glow || "rgba(123, 63, 242, 0.7)") + ", 0 30px 60px rgba(0, 0, 0, 0.35)";
-        tl.fromTo(el, { opacity: 0, rotationY: -90, scale: 0.7, transformPerspective: 900 }, { opacity: 1, rotationY: 0, scale: 1, duration: 0.5, ease: "back.out(1.6)" }, S.in);
-        tl.to(el, { rotation: 8, duration: Math.max(0.3, S.out - S.in - 0.5), ease: "sine.inOut" }, S.in + 0.5);
-        tl.to(el, { opacity: 0, scale: 0.5, duration: 0.3, ease: "power2.in" }, S.out);
+      const bubbleSize = (el) => ({
+        get: () => parseFloat(getComputedStyle(el).fontSize) || 38,
+        set: (v) => {
+          const k = v / (parseFloat(getComputedStyle(el).fontSize) || 38);
+          el.style.fontSize = v + "px";
+          if (el.style.width) el.style.width = parseFloat(el.style.width) * k + "px";
+        },
       });
-
-      // ---------------------------------------------------------------- palavra gigante (por trás ou na frente)
-      arr(E.bigWord).forEach((W, i) => {
-        const el = mk("div", "bigword" + (W.front ? " front" : ""), W.front ? $("front") : mid, esc(W.text));
-        el.id = "bigword" + i;
-        el.style.top = px(W.top != null ? W.top : W.front ? 960 : -10);
-        el.style.fontSize = px(W.size || 300);
-        el.style.color = W.color || (W.front ? "#ffd400" : "#ffffff");
-        if (!W.front) el.style.textShadow = "0 0 50px " + (W.glow || "rgba(123, 63, 242, 0.9)") + ", 0 20px 50px rgba(0, 0, 0, 0.35)";
-        tl.fromTo(el, { opacity: 0, scale: 1.8 }, { opacity: 1, scale: 1, duration: 0.16, ease: "power4.out" }, W.at);
-        tl.to(el, { opacity: 0, duration: 0.25, ease: "power2.in" }, W.out);
-      });
-
-      // ---------------------------------------------------------------- anel de porcentagem por trás
-      if (E.ring) {
-        const R = E.ring;
-        const cx = R.cx != null ? R.cx : 540;
-        const cy = R.cy != null ? R.cy : 620;
-        const r = R.r || 430;
-        const color = R.color || "#29e07a";
-        const circ = 2 * Math.PI * r;
-        const pct = Math.max(0, Math.min(100, R.percent != null ? R.percent : 90));
-        const holder = mk("div", "", mid);
-        holder.innerHTML =
-          '<svg id="ring" viewBox="0 0 1080 1920" width="1080" height="1920">' +
-          '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="#ffffff" stroke-opacity="0.16" stroke-width="34" />' +
-          '<circle id="ringArc" cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="' + color + '" stroke-width="34" stroke-linecap="round" stroke-dasharray="' +
-          circ.toFixed(1) + '" stroke-dashoffset="' + circ.toFixed(1) + '" transform="rotate(-90 ' + cx + " " + cy + ')" />' +
-          "</svg>";
-        $("ring").style.filter = "drop-shadow(0 0 26px " + (R.glow || "rgba(41, 224, 122, 0.85)") + ")";
-        tl.fromTo("#ring", { opacity: 0, scale: 0.85, transformOrigin: cx + "px " + cy + "px" }, { opacity: 1, scale: 1, duration: 0.3, ease: "power2.out" }, R.in);
-        tl.fromTo(
-          "#ringArc",
-          { attr: { "stroke-dashoffset": circ } },
-          { attr: { "stroke-dashoffset": circ * (1 - pct / 100) }, duration: R.drawDur || 1.15, ease: "power2.out" },
-          R.drawAt != null ? R.drawAt : R.in + 0.05
-        );
-        if (R.out != null) tl.to("#ring", { opacity: 0, duration: 0.3, ease: "power2.in" }, R.out);
-      }
-
-      // ---------------------------------------------------------------- camadas de vidro 3D
-      if (E.glass) {
-        const G = E.glass;
-        const ang = G.angle != null ? G.angle : 24;
-        if (G.title || G.accent) {
-          const card = mk("div", "", mid);
-          card.id = "glass";
-          card.style.left = px(G.left != null ? G.left : 30);
-          card.style.top = px(G.top != null ? G.top : 540);
-          card.style.width = px(G.width || 420);
-          let html = '<div class="k">' + (G.title ? esc(G.title) : "") + (G.title && G.accent ? "<br />" : "") + (G.accent ? "<span>" + esc(G.accent) + "</span>" : "") + "</div>";
-          if (G.icon === "card") {
-            html +=
-              '<svg width="220" height="140" viewBox="0 0 220 140">' +
-              '<rect x="4" y="4" width="212" height="132" rx="18" fill="#2a2a3a" stroke="#ffffff" stroke-opacity="0.35" stroke-width="3" />' +
-              '<rect x="4" y="34" width="212" height="24" fill="#0e0e16" />' +
-              '<rect x="24" y="76" width="44" height="32" rx="6" fill="#ffd400" />' +
-              '<rect x="84" y="84" width="110" height="10" rx="5" fill="#ffffff" fill-opacity="0.5" />' +
-              '<rect x="84" y="102" width="70" height="10" rx="5" fill="#ffffff" fill-opacity="0.3" />' +
-              "</svg>";
-          } else if (G.icon === "check") {
-            html +=
-              '<svg width="140" height="140" viewBox="0 0 140 140">' +
-              '<circle cx="70" cy="70" r="62" fill="rgba(41,224,122,0.16)" stroke="#29e07a" stroke-width="6" />' +
-              '<path d="M40 72 L62 94 L102 50" fill="none" stroke="#29e07a" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" />' +
-              "</svg>";
-          }
-          if (G.sub) html += '<div class="cc">' + esc(G.sub) + "</div>";
-          card.innerHTML = html;
-          tl.fromTo(card, { opacity: 0, x: -60, scale: 0.9 }, { opacity: 1, x: 0, scale: 1, duration: 0.45, ease: "back.out(1.6)" }, G.cardIn != null ? G.cardIn : G.in + 0.37);
-          if (G.sub) {
-            tl.fromTo("#glass .cc", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.25, ease: "power2.out" }, G.subAt != null ? G.subAt : G.in + 1.5);
-          }
-          tl.to(card, { opacity: 0, duration: 0.2, ease: "power2.in" }, G.out - 0.05);
-        }
-        tl.set("#scene", { transformOrigin: "50% 50%" }, G.in);
-        // o vídeo original sai e fica só o fundo com o buraco (plate) enquanto as camadas estão separadas
-        tl.set("#baseWrap", { opacity: 0 }, G.in);
-        tl.set("#baseWrap", { opacity: 1 }, G.out + 0.38);
-        tl.fromTo("#scene", { rotationY: 0, rotationX: 0, scale: 1 }, { rotationY: ang, rotationX: 5, scale: 0.8, duration: 0.55, ease: "power3.inOut", immediateRender: false }, G.in);
-        tl.fromTo("#lay-bg", { z: 0 }, { z: -280, duration: 0.55, ease: "power3.inOut", immediateRender: false }, G.in);
-        tl.fromTo("#lay-person", { z: 0 }, { z: 240, duration: 0.55, ease: "power3.inOut", immediateRender: false }, G.in);
-        tl.fromTo(".layer", { borderRadius: 0 }, { borderRadius: 44, duration: 0.55, ease: "power3.inOut", immediateRender: false }, G.in);
-        tl.fromTo(".pane", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power2.out", immediateRender: false }, G.in + 0.12);
-        tl.to("#scene", { rotationY: ang - 10, duration: Math.max(0.3, G.out - G.in - 0.6), ease: "sine.inOut" }, G.in + 0.57);
-        tl.to(".pane", { opacity: 0, duration: 0.25, ease: "power2.in" }, G.out);
-        tl.to("#scene", { rotationY: 0, rotationX: 0, scale: 1, duration: 0.37, ease: "power3.inOut" }, G.out);
-        tl.to("#lay-bg", { z: 0, duration: 0.37, ease: "power3.inOut" }, G.out);
-        tl.to("#lay-person", { z: 0, duration: 0.37, ease: "power3.inOut" }, G.out);
-        tl.to(".layer", { borderRadius: 0, duration: 0.37, ease: "power3.inOut" }, G.out);
-      }
-
-      // ---------------------------------------------------------------- moldura + painel lateral
-      if (E.frame) {
-        const F = E.frame;
-        const fx = F.x != null ? F.x : 440;
-        const fy = F.y != null ? F.y : 420;
-        const fw = F.w || 540;
-        const sc = fw / 1080;
-        const box = $("frameBox");
-        box.style.left = fx + "px";
-        box.style.top = fy + "px";
-        box.style.width = fw + "px";
-        box.style.height = Math.round(1920 * sc) + "px";
-        box.style.borderRadius = Math.round(80 * sc) + "px";
-        const head = $("headline");
-        if (F.headline) {
-          head.textContent = F.headline;
-          head.style.top = px(F.headlineTop != null ? F.headlineTop : 200);
-          head.style.fontSize = px(F.headlineSize || 150);
-        }
-        const panel = $("panel");
-        panel.style.left = px(F.panelX != null ? F.panelX : 50);
-        panel.style.top = px(F.panelY != null ? F.panelY : 470);
-        panel.style.width = px(F.panelW || 360);
-        (F.cards || []).forEach((c, i) => {
-          const kind = c.kind === "good" ? "good" : "bad";
-          const card = mk(
-            "div",
-            "dcard " + kind,
-            panel,
-            '<div class="x">' + (kind === "good" ? "✓" : "✕") + '</div><div><div class="t1">' + esc(c.t1 || "") + '</div><div class="t2">' + esc(c.t2 || "") + "</div></div>"
-          );
-          card.id = "card" + i;
-          tl.fromTo(card, { opacity: 0, y: -40, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.3, ease: "back.out(2)" }, c.at);
-        });
-        tl.set("#scene", { transformOrigin: "0% 0%" }, F.in);
-        tl.fromTo("#scene", { x: 0, y: 0, scale: 1 }, { x: fx, y: fy, scale: sc, duration: 0.45, ease: "power3.inOut", immediateRender: false }, F.in);
-        tl.fromTo(".layer", { borderRadius: 0 }, { borderRadius: 80, duration: 0.45, ease: "power3.inOut", immediateRender: false }, F.in);
-        tl.fromTo("#frameBox", { opacity: 0, scale: 1.08 }, { opacity: 1, scale: 1, duration: 0.3, ease: "power2.out" }, F.in + 0.23);
-        if (F.headline) tl.fromTo("#headline", { opacity: 0, y: -40 }, { opacity: 1, y: 0, duration: 0.3, ease: "power3.out" }, F.in + 0.18);
-        if (F.alertAt != null && (F.cards || []).length) {
-          tl.fromTo(".dcard", { x: 0 }, { x: 10, duration: 0.05, yoyo: true, repeat: 7, ease: "none", immediateRender: false }, F.alertAt);
-          tl.to(".dcard", { borderColor: F.alertBorder || "rgba(255,77,77,0.6)", duration: 0.2 }, F.alertAt);
-          if (F.headline) tl.to("#headline", { color: F.alertColor || "#ff6b6b", duration: 0.2 }, F.alertAt);
-        }
-        const panelOut = F.panelOut != null ? F.panelOut : F.out - 0.3;
-        tl.to("#panel", { opacity: 0, x: -80, duration: 0.3, ease: "power2.in" }, panelOut);
-        if (F.headline) tl.to("#headline", { opacity: 0, y: -40, duration: 0.3, ease: "power2.in" }, panelOut);
-        tl.to("#frameBox", { opacity: 0, duration: 0.2 }, F.out - 0.02);
-        tl.to("#scene", { x: 0, y: 0, scale: 1, duration: 0.3, ease: "power3.inOut" }, F.out);
-        tl.to(".layer", { borderRadius: 0, duration: 0.3, ease: "power3.inOut" }, F.out);
-      }
-
-      // ---------------------------------------------------------------- painéis: ilustração (SVG) e tabela/ranking
-      const panelIn = (wrap, P) => {
-        wrap.style.top = px(P.top != null ? P.top : 170);
-        tl.fromTo("#dim", { opacity: 0 }, { opacity: P.dim != null ? P.dim : 0.78, duration: 0.4, ease: "power2.out", immediateRender: false }, P.in);
-        tl.fromTo(wrap, { opacity: 0, y: 80, scale: 0.94 }, { opacity: 1, y: 0, scale: 1, duration: 0.45, ease: "power3.out" }, P.in);
-        if (P.out != null && P.out < D - 0.05) {
-          tl.to(wrap, { opacity: 0, y: 60, duration: 0.35, ease: "power2.in" }, P.out);
-          tl.to("#dim", { opacity: 0, duration: 0.35, ease: "power2.in" }, P.out);
-        }
+      // bloco de largura total com o texto centralizado: desloca o centro e o topo
+      const moveBlock = (el) => (dx, dy) => {
+        const st = getComputedStyle(el);
+        el.style.left = (parseFloat(st.left) || 0) + dx + "px";
+        el.style.right = (parseFloat(st.right) || 0) - dx + "px";
+        if (dy) el.style.top = (parseFloat(st.top) || 0) + dy + "px";
       };
-      const phead = (P) =>
-        (P.title ? '<div class="ptitle">' + esc(P.title) + (P.accent ? " <span>" + esc(P.accent) + "</span>" : "") + "</div>" : "") +
-        (P.subtitle ? '<div class="psub">' + esc(P.subtitle) + "</div>" : "");
+      const moveBox = (el) => (dx, dy) => {
+        const st = getComputedStyle(el);
+        el.style.left = (parseFloat(st.left) || 0) + dx + "px";
+        el.style.top = (parseFloat(st.top) || 0) + dy + "px";
+      };
 
-      arr(E.diagram).forEach((G, i) => {
-        const wrap = mk("div", "panel", $("overlay"));
-        wrap.id = "diagram" + i;
-        wrap.innerHTML = phead(G) + '<div class="pbody">' + (G.svgMarkup || "") + "</div>" + (G.note ? '<div class="pnote">' + esc(G.note) + "</div>" : "");
-        panelIn(wrap, G);
-        const steps = G.steps || [];
-        wrap.querySelectorAll("[data-step]").forEach((node) => {
-          const k = parseInt(node.getAttribute("data-step"), 10);
-          const t = steps[k - 1] != null ? steps[k - 1] : k === 1 ? G.in + 0.3 : null;
-          if (t == null) return;
-          tl.fromTo(node, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }, t);
-        });
-      });
-
-      arr(E.table).forEach((T, i) => {
-        const wrap = mk("div", "panel", $("overlay"));
-        wrap.id = "table" + i;
-        const rows = (T.rows || [])
-          .map((r, k) =>
-            '<div class="row' + (r.hl ? " " + r.hl : "") + '"><span class="rk">' + esc(r.n != null ? r.n : k + 1) + '</span><span class="nm">' +
-            esc(r.label) + "</span>" + (r.value ? '<span class="vl">' + esc(r.value) + "</span>" : "") + "</div>"
-          )
-          .join("");
-        wrap.innerHTML = phead(T) + '<div class="pbody rows">' + rows + "</div>" + (T.note ? '<div class="pnote">' + esc(T.note) + "</div>" : "");
-        panelIn(wrap, T);
-        const els = Array.from(wrap.querySelectorAll(".row"));
-        const order = T.order === "up" ? els.slice().reverse() : els;
-        order.forEach((row, k) => {
-          const t = T.rowTimes && T.rowTimes[k] != null ? T.rowTimes[k] : (T.rowStart != null ? T.rowStart : T.in + 0.4) + k * (T.rowStep || 0.35);
-          tl.fromTo(row, { opacity: 0, x: -50 }, { opacity: 1, x: 0, duration: 0.3, ease: "power3.out" }, t);
-        });
-        if (T.flashAt != null) {
-          const hl = wrap.querySelector(".row.gold") || els[0];
-          tl.fromTo(hl, { scale: 1 }, { scale: 1.05, duration: 0.12, yoyo: true, repeat: 3, ease: "power2.inOut", immediateRender: false }, T.flashAt);
+      // encaixa um elemento: diminui a fonte se não couber e empurra para dentro da área segura
+      function fit(o) {
+        const cam = o.cam || NOCAM;
+        const ink = o.ink != null ? o.ink : INK;
+        const b0 = lbox(o.meas);
+        const f0 = o.size ? o.size.get() : 0;
+        for (let i = 0; i < 8; i++) {
+          const s = onScreen(lbox(o.meas), cam, ink);
+          const z = zone(o.kind, s);
+          const k = Math.min((z.x1 - z.x0) / (s.x1 - s.x0), (z.y1 - z.y0) / (s.y1 - s.y0));
+          if (o.size && k < 0.999) {
+            const cur = o.size.get();
+            const next = Math.max(f0 * (o.minScale || 0.45), cur * k * 0.985);
+            if (next < cur - 0.05) {
+              o.size.set(next);
+              continue;
+            }
+          }
+          const dx = shift(s.x0, s.x1, z.x0, z.x1);
+          const dy = shift(s.y0, s.y1, z.y0, z.y1);
+          if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) break;
+          // o topo manda no zoom menor; a base e as laterais, no maior
+          o.move(dx / cam.S, dy / (dy > 0 ? cam.s : cam.S));
         }
-      });
+        const b1 = lbox(o.meas);
+        const parts = [];
+        if (o.auto) parts.push("posição automática x,y " + r0(b1.x0) + "," + r0(b1.y0));
+        else if (!o.quiet && (Math.abs(b1.x0 - b0.x0) > 1 || Math.abs(b1.y0 - b0.y0) > 1))
+          parts.push("x,y " + r0(b0.x0) + "," + r0(b0.y0) + " → " + r0(b1.x0) + "," + r0(b1.y0));
+        if (o.size && Math.abs(o.size.get() - f0) > 0.5) parts.push("fonte " + r0(f0) + " → " + r0(o.size.get()));
+        if (parts.length) note(o.name, parts.join(", "));
+        const s = onScreen(b1, cam, ink);
+        if (outside(s, zone(o.kind, s)))
+          console.error("[área segura] " + o.name + " não coube na área segura nem com a fonte reduzida — encurte o texto.");
+      }
 
+      // para o que gira em 3D (cartão das camadas de vidro): mede a caixa real na tela ao longo do tempo
+      function canvasRect(el) {
+        const r = el.getBoundingClientRect();
+        const rr = ROOT.getBoundingClientRect();
+        const s = rr.width / 1080 || 1;
+        return { x0: (r.left - rr.left) / s, y0: (r.top - rr.top) / s, x1: (r.right - rr.left) / s, y1: (r.bottom - rr.top) / s };
+      }
+      function fitSampled(name, el, t0, t1) {
+        const b0 = lbox(el);
+        let u = null;
+        for (let i = 0; i < 4; i++) {
+          u = null;
+          for (let t = t0; t <= t1 + 1e-6; t += 0.2) {
+            tl.seek(t, true);
+            const r = canvasRect(el);
+            u = u ? { x0: Math.min(u.x0, r.x0), y0: Math.min(u.y0, r.y0), x1: Math.max(u.x1, r.x1), y1: Math.max(u.y1, r.y1) } : r;
+          }
+          tl.seek(0, true);
+          if (!u) return;
+          const z = zone("text", u);
+          const dx = shift(u.x0, u.x1, z.x0, z.x1);
+          const dy = shift(u.y0, u.y1, z.y0, z.y1);
+          if (Math.abs(dx) < 1 && Math.abs(dy) < 1) break;
+          const k = Math.max(0.3, (u.x1 - u.x0) / Math.max(1, el.offsetWidth));
+          moveBox(el)(dx / k, dy / k);
+        }
+        const b1 = lbox(el);
+        if (Math.abs(b1.x0 - b0.x0) > 1 || Math.abs(b1.y0 - b0.y0) > 1)
+          note(name, "x,y " + r0(b0.x0) + "," + r0(b0.y0) + " → " + r0(b1.x0) + "," + r0(b1.y0));
+        if (u && outside(u, zone("text", u))) console.error("[área segura] " + name + " não coube na área segura — diminua o cartão.");
+      }
+
+      const POST = []; // encaixes que dependem da timeline inteira (rodam no fim)
+
+      // A cena é montada depois que as fontes carregam; o HyperFrames espera esta promessa (buildReady)
+      // e a timeline registrada antes de capturar qualquer quadro.
       window.__timelines = window.__timelines || {};
-      window.__timelines["main"] = tl;
-      tl.seek(0);
+      window.__hf = window.__hf || {};
+      window.__hf.buildReady = window.__hf.buildReady || {};
+      window.__hf.buildReady.main = fontsReady()
+        .then(build)
+        .catch((err) => console.error("[reels] erro ao montar a cena: " + (err && err.stack ? err.stack : err)));
+
+      function build() {
+        // ---------------------------------------------------------------- legendas
+        const COUNTER = (CONFIG.counter && CONFIG.counter.values) || [];
+        const COUNTER_STEP = (CONFIG.counter && CONFIG.counter.step) || 0.09;
+        const caps = $("caps");
+        caps.style.top = SAFE.capTop + "px";
+        (CONFIG.captions || []).forEach((g, gi) => {
+          const el = mk("div", "grp" + (g.big ? " big" : ""), caps);
+          el.id = "g" + gi;
+          const ln = mk("span", "ln", el);
+          g.w.forEach(([txt, t, cls], wi) => {
+            const span = mk("span", "w" + (cls ? " " + cls : ""), ln);
+            span.id = "g" + gi + "w" + wi;
+            if (txt === "#NUM") {
+              span.classList.add("num");
+              if (CONFIG.counter && CONFIG.counter.width) span.style.width = CONFIG.counter.width + "em";
+              COUNTER.forEach((n, ni) => {
+                const b = mk("b", "", span, esc(n));
+                b.id = "n" + ni;
+                tl.set(b, { opacity: 1 }, t + ni * COUNTER_STEP);
+                if (ni < COUNTER.length - 1) tl.set(b, { opacity: 0 }, t + (ni + 1) * COUNTER_STEP);
+              });
+            } else {
+              span.textContent = txt;
+            }
+          });
+          // legenda longa: diminui a fonte; um pouco larga: desliza para a esquerda (botões à direita)
+          fit({
+            name: "legenda " + gi + ' "' + g.w.map((w) => w[0]).join(" ") + '"',
+            meas: ln,
+            kind: "caption",
+            size: fontSize(el),
+            move: moveBlock(el),
+            ink: 6,
+            minScale: 0.5,
+            quiet: true, // deslizar a legenda é rotina; só a fonte menor vai para o relatório
+          });
+          tl.set(el, { visibility: "visible" }, g.s);
+          tl.fromTo(el, { opacity: 0, scale: 0.86 }, { opacity: 1, scale: 1, duration: 0.14, ease: "back.out(2)" }, g.s);
+          g.w.forEach(([, t], wi) => {
+            tl.fromTo("#g" + gi + "w" + wi, { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.1, ease: "power2.out" }, t);
+          });
+          if (gi < CONFIG.captions.length - 1) {
+            tl.to(el, { opacity: 0, duration: 0.07, ease: "power2.in" }, g.e - 0.07);
+            tl.set(el, { opacity: 0, visibility: "hidden" }, g.e);
+          }
+        });
+
+        // ---------------------------------------------------------------- câmera
+        tl.fromTo("#cam", { scale: 1.35, filter: "blur(14px)" }, { scale: 1, filter: "blur(0px)", duration: 0.45, ease: "power3.out" }, 0);
+        tl.set("#cam", { filter: "none" }, 0.46);
+        tl.fromTo("#flash", { opacity: 0.55 }, { opacity: 0, duration: 0.35, ease: "power2.out" }, 0);
+        const pushOn = CAM.push !== false;
+        if (pushOn) {
+          const pushEnd = punches.length ? punches[0] - 0.05 : Math.min(D - 0.1, 6);
+          if (pushEnd > 0.8) {
+            tl.fromTo("#cam", { scale: 1 }, { scale: 1.05, duration: pushEnd - 0.46, ease: "none", immediateRender: false }, 0.46);
+          }
+        }
+        punches.forEach((t, i) => {
+          const from = i === 0 && pushOn ? 1.05 : 1;
+          const sign = i % 2 ? -1 : 1;
+          tl.fromTo("#cam", { scale: from }, { scale: from * 1.1, duration: 0.14, ease: "power3.out", immediateRender: false }, t);
+          tl.fromTo("#cam", { x: 0, y: 0 }, { x: 14 * sign, y: -10 * sign, duration: 0.04, yoyo: true, repeat: 5, ease: "none", immediateRender: false }, t);
+          tl.set("#cam", { x: 0, y: 0 }, t + 0.25);
+          tl.fromTo("#flash", { opacity: 0.35 }, { opacity: 0, duration: 0.25, ease: "power2.out", immediateRender: false }, t);
+          const back = t + (CAM.punchHold || 0.5);
+          const backDur = Math.min(0.5, D - back - 0.02);
+          if (backDur > 0.05) {
+            tl.fromTo("#cam", { scale: from * 1.1 }, { scale: 1, duration: backDur, ease: "power3.inOut", immediateRender: false }, back);
+          }
+        });
+
+        // ---------------------------------------------------------------- balões (por trás ou na frente)
+        if (E.bubbles && E.bubbles.items) {
+          const B = E.bubbles;
+          B.items.forEach((b, i) => {
+            const el = mk("div", "bubble " + (b.tail || "r"), B.front ? $("front") : mid, esc(b.text));
+            el.id = "b" + i;
+            el.style.left = px(num(b.left, SAFE.left));
+            el.style.top = px(num(b.top, SAFE.top));
+            if (b.width) el.style.width = px(b.width);
+            fit({ name: 'balão "' + b.text + '"', meas: el, kind: "text", cam: camRange(b.at + 0.35, B.out), size: bubbleSize(el), move: moveBox(el), ink: 20 });
+            tl.fromTo(el, { opacity: 0, scale: 0.4, y: 40, rotation: 0 }, { opacity: 1, scale: 1, y: 0, rotation: b.rot || 0, duration: 0.35, ease: "back.out(2.2)" }, b.at);
+            const floatDur = Math.max(0.3, B.out - (b.at + 0.35) - 0.05);
+            tl.to(el, { y: -18, duration: floatDur, ease: "sine.inOut" }, b.at + 0.35);
+          });
+          tl.to(".bubble", { opacity: 0, scale: 0.6, duration: 0.25, ease: "power2.in", stagger: 0.04 }, B.out);
+        }
+
+        // ---------------------------------------------------------------- símbolo gigante (por trás ou na frente)
+        arr(E.bigSymbol).forEach((S, i) => {
+          const el = mk("div", "bigsym", S.front ? $("front") : mid, esc(S.text));
+          el.id = "bigsym" + i;
+          el.style.left = px(num(S.left, SAFE.left));
+          el.style.top = px(num(S.top, SAFE.top));
+          el.style.fontSize = px(S.size || 980);
+          el.style.color = S.color || "#6a2ee8";
+          el.style.textShadow = "0 0 70px " + (S.glow || "rgba(123, 63, 242, 0.7)") + ", 0 30px 60px rgba(0, 0, 0, 0.35)";
+          // folga para o giro de 8° (a caixa girada cresce ~7% da altura nas pontas)
+          const spin = (S.size || 980) * 0.075;
+          fit({ name: 'bigSymbol "' + S.text + '"', meas: el, kind: "deco", cam: camRange(S.in + 0.5, S.out), size: fontSize(el), move: moveBox(el), ink: spin });
+          tl.fromTo(el, { opacity: 0, rotationY: -90, scale: 0.7, transformPerspective: 900 }, { opacity: 1, rotationY: 0, scale: 1, duration: 0.5, ease: "back.out(1.6)" }, S.in);
+          tl.to(el, { rotation: 8, duration: Math.max(0.3, S.out - S.in - 0.5), ease: "sine.inOut" }, S.in + 0.5);
+          tl.to(el, { opacity: 0, scale: 0.5, duration: 0.3, ease: "power2.in" }, S.out);
+        });
+
+        // ---------------------------------------------------------------- palavra gigante (por trás ou na frente)
+        arr(E.bigWord).forEach((W, i) => {
+          // "por trás, acima da cabeça" (top acima da área segura, configs antigos) não cabe mais: lá é a
+          // interface do Instagram, e mais para baixo a cabeça cobre as letras. Vira "na frente".
+          const moved = W.front == null && typeof W.top === "number" && W.top < SAFE.top;
+          const front = !!W.front || moved;
+          if (moved) note('bigWord "' + W.text + '"', "por trás (top " + W.top + ") → na frente, acima das legendas");
+          const el = mk("div", "bigword" + (front ? " front" : ""), front ? $("front") : mid, '<span class="t">' + esc(W.text) + "</span>");
+          el.id = "bigword" + i;
+          // sem "top": por trás sobe até o alto da área segura; na frente fica logo acima das legendas
+          const auto = W.top == null || moved;
+          el.style.top = px(auto ? (front ? 3000 : -3000) : W.top);
+          el.style.fontSize = px(W.size || (front ? 240 : 300));
+          el.style.color = W.color || (front ? "#ffd400" : "#ffffff");
+          if (!front) el.style.textShadow = "0 0 50px " + (W.glow || "rgba(123, 63, 242, 0.9)") + ", 0 20px 50px rgba(0, 0, 0, 0.35)";
+          fit({ name: 'bigWord "' + W.text + '"', meas: el.firstChild, kind: "text", cam: camRange(W.at + 0.16, W.out), size: fontSize(el), move: moveBlock(el), auto });
+          tl.fromTo(el, { opacity: 0, scale: 1.8 }, { opacity: 1, scale: 1, duration: 0.16, ease: "power4.out" }, W.at);
+          tl.to(el, { opacity: 0, duration: 0.25, ease: "power2.in" }, W.out);
+        });
+
+        // ---------------------------------------------------------------- anel de porcentagem por trás
+        if (E.ring) {
+          const R = E.ring;
+          let cx = num(R.cx, 540);
+          let cy = num(R.cy, 620);
+          let r = R.r || 340;
+          // o anel inteiro (traço + brilho) cabe na área segura nos dois extremos do zoom da câmera
+          const cam = camRange(R.in, R.out != null ? R.out : D);
+          const mx = cam.shake ? 14 : 0;
+          const my = cam.shake ? 10 : 0;
+          const sw = 17 + 6;
+          const zx0 = 540 + (SAFE.left + mx - 540) / cam.S;
+          const zx1 = 540 + (SAFE.right - mx - 540) / cam.S;
+          const zy0 = (SAFE.top + my) / cam.s;
+          const zy1 = (SAFE.bottom - my) / cam.S;
+          const r1 = Math.min(r, (zx1 - zx0) / 2 - sw, (zy1 - zy0) / 2 - sw);
+          const cx1 = clamp(cx, zx0 + r1 + sw, zx1 - r1 - sw);
+          const cy1 = clamp(cy, zy0 + r1 + sw, zy1 - r1 - sw);
+          if (r - r1 > 0.5 || Math.abs(cx1 - cx) > 0.5 || Math.abs(cy1 - cy) > 0.5)
+            note("ring", "centro " + r0(cx) + "," + r0(cy) + " → " + r0(cx1) + "," + r0(cy1) + ", raio " + r0(r) + " → " + r0(r1));
+          cx = cx1;
+          cy = cy1;
+          r = r1;
+          const color = R.color || "#29e07a";
+          const circ = 2 * Math.PI * r;
+          const pct = Math.max(0, Math.min(100, R.percent != null ? R.percent : 90));
+          const holder = mk("div", "", mid);
+          holder.innerHTML =
+            '<svg id="ring" viewBox="0 0 1080 1920" width="1080" height="1920">' +
+            '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="#ffffff" stroke-opacity="0.16" stroke-width="34" />' +
+            '<circle id="ringArc" cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="' + color + '" stroke-width="34" stroke-linecap="round" stroke-dasharray="' +
+            circ.toFixed(1) + '" stroke-dashoffset="' + circ.toFixed(1) + '" transform="rotate(-90 ' + cx + " " + cy + ')" />' +
+            "</svg>";
+          $("ring").style.filter = "drop-shadow(0 0 26px " + (R.glow || "rgba(41, 224, 122, 0.85)") + ")";
+          tl.fromTo("#ring", { opacity: 0, scale: 0.85, transformOrigin: cx + "px " + cy + "px" }, { opacity: 1, scale: 1, duration: 0.3, ease: "power2.out" }, R.in);
+          tl.fromTo(
+            "#ringArc",
+            { attr: { "stroke-dashoffset": circ } },
+            { attr: { "stroke-dashoffset": circ * (1 - pct / 100) }, duration: R.drawDur || 1.15, ease: "power2.out" },
+            R.drawAt != null ? R.drawAt : R.in + 0.05
+          );
+          if (R.out != null) tl.to("#ring", { opacity: 0, duration: 0.3, ease: "power2.in" }, R.out);
+        }
+
+        // ---------------------------------------------------------------- camadas de vidro 3D
+        if (E.glass) {
+          const G = E.glass;
+          const ang = G.angle != null ? G.angle : 24;
+          if (G.title || G.accent) {
+            const card = mk("div", "", mid);
+            card.id = "glass";
+            card.style.left = px(num(G.left, 40)); // a cena encolhe para o centro no giro: na tela fica bem mais para dentro
+            card.style.top = px(num(G.top, 540));
+            card.style.width = px(G.width || 280);
+            let html = '<div class="k">' + (G.title ? esc(G.title) : "") + (G.title && G.accent ? "<br />" : "") + (G.accent ? "<span>" + esc(G.accent) + "</span>" : "") + "</div>";
+            if (G.icon === "card") {
+              html +=
+                '<svg width="220" height="140" viewBox="0 0 220 140">' +
+                '<rect x="4" y="4" width="212" height="132" rx="18" fill="#2a2a3a" stroke="#ffffff" stroke-opacity="0.35" stroke-width="3" />' +
+                '<rect x="4" y="34" width="212" height="24" fill="#0e0e16" />' +
+                '<rect x="24" y="76" width="44" height="32" rx="6" fill="#ffd400" />' +
+                '<rect x="84" y="84" width="110" height="10" rx="5" fill="#ffffff" fill-opacity="0.5" />' +
+                '<rect x="84" y="102" width="70" height="10" rx="5" fill="#ffffff" fill-opacity="0.3" />' +
+                "</svg>";
+            } else if (G.icon === "check") {
+              html +=
+                '<svg width="140" height="140" viewBox="0 0 140 140">' +
+                '<circle cx="70" cy="70" r="62" fill="rgba(41,224,122,0.16)" stroke="#29e07a" stroke-width="6" />' +
+                '<path d="M40 72 L62 94 L102 50" fill="none" stroke="#29e07a" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" />' +
+                "</svg>";
+            }
+            if (G.sub) html += '<div class="cc">' + esc(G.sub) + "</div>";
+            card.innerHTML = html;
+            const cardIn = G.cardIn != null ? G.cardIn : G.in + 0.37;
+            tl.fromTo(card, { opacity: 0, x: -60, scale: 0.9 }, { opacity: 1, x: 0, scale: 1, duration: 0.45, ease: "back.out(1.6)" }, cardIn);
+            if (G.sub) {
+              tl.fromTo("#glass .cc", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.25, ease: "power2.out" }, G.subAt != null ? G.subAt : G.in + 1.5);
+            }
+            tl.to(card, { opacity: 0, duration: 0.2, ease: "power2.in" }, G.out - 0.05);
+            // a cena gira em 3D: o encaixe mede a caixa real na tela depois que a timeline estiver pronta
+            POST.push(() => fitSampled("glass", card, cardIn + 0.5, G.out - 0.1));
+          }
+          tl.set("#scene", { transformOrigin: "50% 50%" }, G.in);
+          // o vídeo original sai e fica só o fundo com o buraco (plate) enquanto as camadas estão separadas
+          tl.set("#baseWrap", { opacity: 0 }, G.in);
+          tl.set("#baseWrap", { opacity: 1 }, G.out + 0.38);
+          tl.fromTo("#scene", { rotationY: 0, rotationX: 0, scale: 1 }, { rotationY: ang, rotationX: 5, scale: 0.8, duration: 0.55, ease: "power3.inOut", immediateRender: false }, G.in);
+          tl.fromTo("#lay-bg", { z: 0 }, { z: -280, duration: 0.55, ease: "power3.inOut", immediateRender: false }, G.in);
+          tl.fromTo("#lay-person", { z: 0 }, { z: 240, duration: 0.55, ease: "power3.inOut", immediateRender: false }, G.in);
+          tl.fromTo(".layer", { borderRadius: 0 }, { borderRadius: 44, duration: 0.55, ease: "power3.inOut", immediateRender: false }, G.in);
+          tl.fromTo(".pane", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power2.out", immediateRender: false }, G.in + 0.12);
+          tl.to("#scene", { rotationY: ang - 10, duration: Math.max(0.3, G.out - G.in - 0.6), ease: "sine.inOut" }, G.in + 0.57);
+          tl.to(".pane", { opacity: 0, duration: 0.25, ease: "power2.in" }, G.out);
+          tl.to("#scene", { rotationY: 0, rotationX: 0, scale: 1, duration: 0.37, ease: "power3.inOut" }, G.out);
+          tl.to("#lay-bg", { z: 0, duration: 0.37, ease: "power3.inOut" }, G.out);
+          tl.to("#lay-person", { z: 0, duration: 0.37, ease: "power3.inOut" }, G.out);
+          tl.to(".layer", { borderRadius: 0, duration: 0.37, ease: "power3.inOut" }, G.out);
+        }
+
+        // ---------------------------------------------------------------- moldura + painel lateral
+        if (E.frame) {
+          const F = E.frame;
+          // manchete no alto da área segura; a moldura começa logo abaixo e termina antes da base
+          const head = $("headline");
+          let headBottom = SAFE.top - 24;
+          if (F.headline) {
+            head.innerHTML = '<span class="t">' + esc(F.headline) + "</span>";
+            head.style.top = px(num(F.headlineTop, SAFE.top));
+            head.style.fontSize = px(F.headlineSize || 150);
+            fit({ name: "frame.headline", meas: head.firstChild, kind: "text", size: fontSize(head), move: moveBlock(head) });
+            headBottom = lbox(head.firstChild).y1;
+          }
+          let fw = clamp(F.w || 500, 240, SAFE.right - SAFE.left);
+          let fy = Math.max(num(F.y, headBottom + 24), headBottom + 24);
+          if (fy + (fw * 16) / 9 > SAFE.bottom) fw = Math.max(240, ((SAFE.bottom - fy) * 9) / 16);
+          fy = Math.min(fy, SAFE.bottom - (fw * 16) / 9);
+          const fx = clamp(num(F.x, SAFE.right - fw), SAFE.left, SAFE.right - fw);
+          if ((F.x != null && Math.abs(fx - F.x) > 0.5) || (F.y != null && Math.abs(fy - F.y) > 0.5) || (F.w && Math.abs(fw - F.w) > 0.5))
+            note("frame", "moldura x " + r0(fx) + ", y " + r0(fy) + ", largura " + r0(fw));
+          const sc = fw / 1080;
+          const box = $("frameBox");
+          box.style.left = fx + "px";
+          box.style.top = fy + "px";
+          box.style.width = fw + "px";
+          box.style.height = Math.round(1920 * sc) + "px";
+          box.style.borderRadius = Math.round(80 * sc) + "px";
+          // cartões na coluna da esquerda, entre a margem segura e a moldura
+          const panel = $("panel");
+          const pin = mk("div", "pin", panel);
+          const pX = Math.max(num(F.panelX, SAFE.left), SAFE.left);
+          const pW = Math.max(160, Math.min(num(F.panelW, 360), fx - 24 - pX));
+          const pY = Math.max(num(F.panelY, fy + 50), SAFE.top);
+          panel.style.left = px(pX);
+          panel.style.top = px(pY);
+          panel.style.width = px(pW);
+          (F.cards || []).forEach((c, i) => {
+            const kind = c.kind === "good" ? "good" : "bad";
+            const card = mk(
+              "div",
+              "dcard " + kind,
+              pin,
+              '<div class="x">' + (kind === "good" ? "✓" : "✕") + '</div><div><div class="t1">' + esc(c.t1 || "") + '</div><div class="t2">' + esc(c.t2 || "") + "</div></div>"
+            );
+            card.id = "card" + i;
+            tl.fromTo(card, { opacity: 0, y: -40, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.3, ease: "back.out(2)" }, c.at);
+          });
+          if ((F.cards || []).length) {
+            // cartões que não cabem na coluna (largura ou altura) encolhem juntos
+            const natW = pin.offsetWidth;
+            const lw = Math.max(natW, pW);
+            pin.style.width = px(lw);
+            const k = Math.min(1, pW / lw, (SAFE.capTop - 20 - pY) / Math.max(1, pin.offsetHeight));
+            if (k < 0.999) {
+              pin.style.transform = "scale(" + k.toFixed(4) + ")";
+              note("frame.cards", "escala " + k.toFixed(2));
+            }
+          }
+          tl.set("#scene", { transformOrigin: "0% 0%" }, F.in);
+          tl.fromTo("#scene", { x: 0, y: 0, scale: 1 }, { x: fx, y: fy, scale: sc, duration: 0.45, ease: "power3.inOut", immediateRender: false }, F.in);
+          tl.fromTo(".layer", { borderRadius: 0 }, { borderRadius: 80, duration: 0.45, ease: "power3.inOut", immediateRender: false }, F.in);
+          tl.fromTo("#frameBox", { opacity: 0, scale: 1.08 }, { opacity: 1, scale: 1, duration: 0.3, ease: "power2.out" }, F.in + 0.23);
+          if (F.headline) tl.fromTo("#headline", { opacity: 0, y: -40 }, { opacity: 1, y: 0, duration: 0.3, ease: "power3.out" }, F.in + 0.18);
+          if (F.alertAt != null && (F.cards || []).length) {
+            tl.fromTo(".dcard", { x: 0 }, { x: 10, duration: 0.05, yoyo: true, repeat: 7, ease: "none", immediateRender: false }, F.alertAt);
+            tl.to(".dcard", { borderColor: F.alertBorder || "rgba(255,77,77,0.6)", duration: 0.2 }, F.alertAt);
+            if (F.headline) tl.to("#headline", { color: F.alertColor || "#ff6b6b", duration: 0.2 }, F.alertAt);
+          }
+          const panelOut = F.panelOut != null ? F.panelOut : F.out - 0.3;
+          tl.to("#panel", { opacity: 0, x: -80, duration: 0.3, ease: "power2.in" }, panelOut);
+          if (F.headline) tl.to("#headline", { opacity: 0, y: -40, duration: 0.3, ease: "power2.in" }, panelOut);
+          tl.to("#frameBox", { opacity: 0, duration: 0.2 }, F.out - 0.02);
+          tl.to("#scene", { x: 0, y: 0, scale: 1, duration: 0.3, ease: "power3.inOut" }, F.out);
+          tl.to(".layer", { borderRadius: 0, duration: 0.3, ease: "power3.inOut" }, F.out);
+        }
+
+        // ---------------------------------------------------------------- painéis: ilustração (SVG) e tabela/ranking
+        // O painel ocupa a área segura acima das legendas. Até a altura da coluna de botões ele usa a
+        // largura toda; mais alto que isso, para antes dos botões. Se não couber na altura, encolhe.
+        const panelIn = (wrap, P, name) => {
+          const card = wrap.firstChild;
+          const maxB = SAFE.capTop - 20;
+          const top0 = Math.max(num(P.top, SAFE.top), SAFE.top);
+          const place = (x1) => {
+            wrap.style.left = px(SAFE.left);
+            wrap.style.width = px(x1 - SAFE.left);
+            return card.offsetHeight;
+          };
+          let H = place(SAFE.right);
+          if (top0 + H > SAFE.railY) H = place(SAFE.railX);
+          const top = Math.max(SAFE.top, Math.min(top0, maxB - H));
+          const k = top + H > maxB ? Math.max(0.5, (maxB - top) / H) : 1;
+          if (k < 1) card.style.transform = "scale(" + k.toFixed(4) + ")";
+          wrap.style.top = px(top);
+          if ((P.top != null && Math.abs(P.top - top) > 0.5) || k < 1)
+            note(name, "topo " + r0(num(P.top, top)) + " → " + r0(top) + (k < 1 ? ", escala " + k.toFixed(2) : ""));
+          if (top + H * k > maxB + 2) console.error("[área segura] " + name + " não coube acima das legendas — tire linhas ou etapas.");
+          tl.fromTo("#dim", { opacity: 0 }, { opacity: P.dim != null ? P.dim : 0.78, duration: 0.4, ease: "power2.out", immediateRender: false }, P.in);
+          tl.fromTo(wrap, { opacity: 0, y: 80, scale: 0.94 }, { opacity: 1, y: 0, scale: 1, duration: 0.45, ease: "power3.out" }, P.in);
+          if (P.out != null && P.out < D - 0.05) {
+            tl.to(wrap, { opacity: 0, y: 60, duration: 0.35, ease: "power2.in" }, P.out);
+            tl.to("#dim", { opacity: 0, duration: 0.35, ease: "power2.in" }, P.out);
+          }
+        };
+        const phead = (P) =>
+          (P.title ? '<div class="ptitle">' + esc(P.title) + (P.accent ? " <span>" + esc(P.accent) + "</span>" : "") + "</div>" : "") +
+          (P.subtitle ? '<div class="psub">' + esc(P.subtitle) + "</div>" : "");
+
+        arr(E.diagram).forEach((G, i) => {
+          const wrap = mk("div", "panel", $("overlay"));
+          wrap.id = "diagram" + i;
+          wrap.innerHTML =
+            '<div class="pcard">' + phead(G) + '<div class="pbody">' + (G.svgMarkup || "") + "</div>" + (G.note ? '<div class="pnote">' + esc(G.note) + "</div>" : "") + "</div>";
+          panelIn(wrap, G, "diagram[" + i + "]");
+          const steps = G.steps || [];
+          wrap.querySelectorAll("[data-step]").forEach((node) => {
+            const k = parseInt(node.getAttribute("data-step"), 10);
+            const t = steps[k - 1] != null ? steps[k - 1] : k === 1 ? G.in + 0.3 : null;
+            if (t == null) return;
+            tl.fromTo(node, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }, t);
+          });
+        });
+
+        arr(E.table).forEach((T, i) => {
+          const wrap = mk("div", "panel", $("overlay"));
+          wrap.id = "table" + i;
+          const rows = (T.rows || [])
+            .map((r, k) =>
+              '<div class="row' + (r.hl ? " " + r.hl : "") + '"><span class="rk">' + esc(r.n != null ? r.n : k + 1) + '</span><span class="nm">' +
+              esc(r.label) + "</span>" + (r.value ? '<span class="vl">' + esc(r.value) + "</span>" : "") + "</div>"
+            )
+            .join("");
+          wrap.innerHTML = '<div class="pcard">' + phead(T) + '<div class="pbody rows">' + rows + "</div>" + (T.note ? '<div class="pnote">' + esc(T.note) + "</div>" : "") + "</div>";
+          panelIn(wrap, T, "table[" + i + "]");
+          const els = Array.from(wrap.querySelectorAll(".row"));
+          const order = T.order === "up" ? els.slice().reverse() : els;
+          order.forEach((row, k) => {
+            const t = T.rowTimes && T.rowTimes[k] != null ? T.rowTimes[k] : (T.rowStart != null ? T.rowStart : T.in + 0.4) + k * (T.rowStep || 0.35);
+            tl.fromTo(row, { opacity: 0, x: -50 }, { opacity: 1, x: 0, duration: 0.3, ease: "power3.out" }, t);
+          });
+          if (T.flashAt != null) {
+            const hl = wrap.querySelector(".row.gold") || els[0];
+            tl.fromTo(hl, { scale: 1 }, { scale: 1.05, duration: 0.12, yoyo: true, repeat: 3, ease: "power2.inOut", immediateRender: false }, T.flashAt);
+          }
+        });
+
+        POST.forEach((f) => f());
+        tl.seek(0);
+        window.__safeZone = SAFE_LOG;
+        if (SAFE_LOG.length) console.log("[área segura] ajustes: " + SAFE_LOG.join(" | "));
+        window.__timelines["main"] = tl;
+        if (typeof window.__hfForceTimelineRebind === "function") window.__hfForceTimelineRebind();
+      }
     </script>
   </body>
 </html>

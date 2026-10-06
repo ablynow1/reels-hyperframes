@@ -5,6 +5,11 @@ Qualquer efeito pode ser omitido. `bigWord`, `bigSymbol`, `diagram` e `table` ac
 quantas vezes quiser); `bubbles`, `glass`, `frame` e `ring` aparecem uma vez. Exemplo completo:
 `assets/config.example.json`.
 
+**Área segura** (`references/safe-zone.md`): texto fica em x 120–960 (só até 860 abaixo de y 900) e
+y 300–1150; as legendas em y 1170–1290. O modelo encaixa sozinho tudo que sair disso (empurra para
+dentro e, se precisar, diminui a fonte), contando o zoom da câmera. As posições abaixo já respeitam a
+área; o que você precisa conferir é se a **cabeça** não está cobrindo algo que passa por trás.
+
 ## Sumário
 - Campos gerais
 - Câmera (`camera`)
@@ -37,6 +42,7 @@ quantas vezes quiser); `bubbles`, `glass`, `frame` e `ring` aparecem uma vez. Ex
 - `duration` e `fill` vêm do `clip.json` se você não puser. `fill` é a cor que aparece no lugar da
   pessoa quando o fundo aparece sozinho (nas camadas de vidro vira uma "silhueta"); use a cor da parede.
 - `captions`: lista de blocos ou o nome do arquivo (`captions.json`, padrão).
+- `safe` (opcional): muda um valor da área segura só neste vídeo, ex.: `"safe": { "railY": 800 }`.
 
 ## Câmera
 ```json
@@ -48,41 +54,51 @@ quantas vezes quiser); `bubbles`, `glass`, `frame` e `ring` aparecem uma vez. Ex
   (marca, número). Mínimo 1 s entre eles. `punchHold` = quanto tempo o zoom segura antes de voltar.
 
 ## Balões por trás
-Para "todo mundo me pergunta…", "meus clientes falam…": as perguntas surgem por trás da pessoa.
+Para "todo mundo me pergunta…", "meus clientes falam…": as perguntas surgem em volta da pessoa (por trás
+ou, num close, na frente).
 ```json
 "bubbles": {
+  "front": true,
   "out": 2.62,
   "items": [
-    { "text": "qual plataforma você usa?", "at": 0.3, "left": 24, "top": 470, "width": 330, "rot": -3, "tail": "r" },
-    { "text": "qual você indica?", "at": 0.95, "left": 44, "top": 190, "width": 270, "rot": 2, "tail": "r" },
-    { "text": "é confiável?", "at": 1.6, "left": 34, "top": 900, "width": 300, "rot": -2, "tail": "r" }
+    { "text": "qual plataforma você usa?", "at": 0.3, "left": 150, "top": 340, "width": 320, "rot": -3, "tail": "r" },
+    { "text": "qual você indica?", "at": 0.95, "left": 560, "top": 410, "width": 280, "rot": 2, "tail": "l" },
+    { "text": "é confiável?", "at": 1.6, "left": 150, "top": 860, "width": 250, "rot": -2, "tail": "r" }
   ]
 }
 ```
 - `at` = quando cada balão aparece (espalhe ~0,6 s); `out` = quando todos saem.
-- Texto curto (2 linhas no máximo, `width` 270–340). `tail` "r" ou "l" = lado do bico.
-- Posição: nas laterais, encostando no rosto só com a pontinha (é isso que dá a sensação de "por trás").
-  Num close quase não sobra espaço à direita; empilhar os três à esquerda funciona bem.
+- Texto curto (2 linhas no máximo, `width` 240–320). `tail` "r" ou "l" = lado do bico.
+- **Por trás** (padrão): na lateral, a partir de x 120 e y 300, encostando no rosto só com a pontinha —
+  funciona quando sobra parede ao lado da cabeça (plano mais aberto).
+- **Na frente** (`"front": true`): o certo num close, em que o rosto ocupa quase toda a área segura. Ponha
+  os balões sobre o cabelo/testa (y 300–550) e nas bochechas, **nunca sobre olhos e boca** (o exemplo
+  acima é de um close).
 - As perguntas precisam ser coerentes com a fala (paráfrases do que ela diz que perguntam).
 
 ## Símbolo gigante
 ```json
-"bigSymbol": { "text": "?", "in": 2.72, "out": 4.6, "left": 10, "top": 110, "size": 980, "color": "#6a2ee8" }
+"bigSymbol": { "text": "?", "in": 2.72, "out": 4.6, "left": 180, "top": 335, "size": 560, "color": "#6a2ee8" }
 ```
 - Gira em 3D ao entrar. Um caractere ("?", "!", "$", "%", "×").
-- Fica de lado da cabeça (`left` 10 ou ~800) — no meio ele some atrás da pessoa.
+- Fica de lado da cabeça, na parede que sobra entre a margem (x 120) e o rosto — no meio ele some atrás
+  da pessoa. Num close o espaço é estreito: `size` ~500–600; em plano aberto, até ~900 (o modelo encolhe o
+  que passar da área segura, já contando o giro).
 - `color` com contraste contra a parede (roxo/escuro em parede clara; amarelo em parede escura).
 
 ## Palavra gigante
 ```json
-"bigWord": { "text": "APPMAX", "at": 5.31, "out": 5.95, "top": -10, "size": 300, "color": "#ffffff", "glow": "rgba(123, 63, 242, 0.9)" }
+"bigWord": { "text": "APPMAX", "at": 5.31, "out": 5.95, "front": true, "size": 240 }
 ```
-- Bate por trás da cabeça na hora da palavra. Combine com um soco de câmera no mesmo `at`.
-- `"front": true` põe a palavra **na frente** da pessoa (contorno preto, amarelo por padrão, `top` padrão 960):
-  use quando a cabeça ocupa o topo da tela e não sobra espaço atrás dela (selfie, vídeo no carro).
+- Bate na hora da palavra. Combine com um soco de câmera no mesmo `at` (o encaixe já conta o zoom do soco).
+- **Na frente** (`"front": true`, contorno preto, amarelo por padrão, `size` padrão 240): sem `top`, fica
+  logo acima das legendas. É o certo num **close** — selfie, vídeo no carro, cabeça no alto da tela —,
+  porque o topo da tela agora é área da interface do Instagram e não sobra lugar acima da cabeça.
+- **Por trás** (sem `front`, branca com brilho roxo, `size` padrão 300): sem `top`, fica no alto da área
+  segura (y ≈ 300). Só funciona quando a cabeça começa bem abaixo disso (plano mais aberto); senão a
+  cabeça cobre as letras — confira no `celular.jpg`.
 - Para várias palavras, use uma lista: `"bigWord": [ {...}, {...} ]`.
-- Fica **acima** da cabeça (`top` −10 a 60): o cabelo cobre só a parte de baixo das letras do meio.
-- Até ~7 letras em `size` 300; palavras maiores, diminua o `size`.
+- Até ~7 letras em `size` 300 (palavras maiores o modelo diminui sozinho até caber em x 120–960).
 
 ## Camadas de vidro 3D
 A cena gira e se separa em três placas de vidro: fundo, cartão, pessoa. Depois junta de novo.
@@ -91,21 +107,24 @@ A cena gira e se separa em três placas de vidro: fundo, cartão, pessoa. Depois
   "in": 5.83, "out": 8.25, "angle": 24,
   "cardIn": 6.2, "title": "TAXA DE", "accent": "APROVAÇÃO", "icon": "card",
   "sub": "CARTÃO DE CRÉDITO", "subAt": 7.91,
-  "left": 30, "top": 540, "width": 420
+  "left": 40, "top": 540, "width": 300
 }
 ```
 - Bom para a frase que explica o ponto principal. Dura de 2 a 3 s.
 - `in` numa emenda de corte esconde o pulo da imagem.
 - Cartão: `title` (branco) + `accent` (verde) + `icon` (`"card"` cartão de crédito, `"check"` ✓, ou omita)
   + `sub` (amarelo, aparece em `subAt`). Sem `title`/`accent`, só as camadas giram.
-- Posição do cartão: lado esquerdo (`left` ~30, `width` ≤ 420). Com `angle` positivo a pessoa se desloca
-  para a direita e revela o lado esquerdo da camada do meio.
+- Posição do cartão: lado esquerdo (`left` ~40, `width` ≤ 300). No giro a cena encolhe para o centro, então
+  na tela o cartão aparece bem mais para dentro (left 40 vira x ≈ 150); o modelo mede a caixa real durante o
+  giro e só empurra se sair da área segura. Com `angle` positivo a pessoa se desloca para a direita e revela
+  o lado esquerdo da camada do meio — mas no fim do giro ela volta um pouco: cartão largo demais fica com a
+  ponta atrás da cabeça.
 
 ## Moldura + painel lateral
 A pessoa encolhe para uma moldura à direita; manchete em cima e cartões à esquerda.
 ```json
 "frame": {
-  "in": 8.62, "out": 12.92, "x": 440, "y": 420, "w": 540,
+  "in": 8.62, "out": 12.92,
   "headline": "OUTROS GATEWAYS",
   "cards": [
     { "t1": "Pagamento", "t2": "RECUSADO", "kind": "bad", "at": 9.09 },
@@ -118,15 +137,19 @@ A pessoa encolhe para uma moldura à direita; manchete em cima e cartões à esq
 - Bom para comparação ("diferente de outros…") ou lista (3 itens).
 - `kind`: `"bad"` (✕ vermelho) ou `"good"` (✓ verde). `t1` pequeno em cima, `t2` grande embaixo (até ~10 letras).
 - `alertAt`: os cartões tremem e a manchete fica vermelha (use no "não", "nunca").
-- A moldura padrão (x 440, y 420, largura 540) deixa a coluna da esquerda (x 50–410) para os cartões.
+- Sem `x`/`y`/`w`, o modelo faz o layout dentro da área segura: manchete em y 300 (fonte de até 150,
+  ajustada à largura), moldura de largura 500 encostada em x 960, logo abaixo da manchete, e os cartões
+  entre x 120 e a moldura (encolhem juntos se não couberem). Só ponha `x`, `y`, `w`, `headlineTop`,
+  `headlineSize`, `panelX`, `panelY`, `panelW` se precisar — valores fora da área são corrigidos.
 - Se vier depois do `glass`, comece pelo menos 0,37 s depois do `glass.out` (o builder avisa).
 
 ## Anel de porcentagem
 ```json
-"ring": { "in": 13.05, "drawAt": 13.1, "drawDur": 1.15, "percent": 90, "cx": 540, "cy": 620, "r": 430, "color": "#29e07a" }
+"ring": { "in": 13.05, "drawAt": 13.1, "drawDur": 1.15, "percent": 90, "cx": 540, "cy": 675, "r": 340, "color": "#29e07a" }
 ```
 - Um anel verde enche até `percent` por trás da cabeça. Centralize no rosto (`cx`, `cy`): num close
-  típico, (540, 620) com raio 430.
+  típico, (540, 675) com raio 340. O modelo encolhe/desce o anel para ele caber inteiro na área segura
+  (topo em y 300, laterais em 120 e 960), já contando o zoom do soco de câmera.
 - Combine com o contador na legenda e um soco de câmera no mesmo tempo.
 
 ## Ilustração explicativa
@@ -134,22 +157,25 @@ Um painel escuro sobe por cima do vídeo (o fundo escurece) com um SVG que vai s
 para explicar algo técnico que a pessoa fala (motor, processo, antes × depois).
 ```json
 "diagram": {
-  "in": 33.3, "out": 41.6, "svg": "engine.svg", "top": 250,
+  "in": 33.3, "out": 41.6, "svg": "engine.svg",
   "title": "POR QUE O 6.7 É", "accent": "MAIS BAIXO", "subtitle": "ilustração · fora de escala",
   "steps": [33.55, 35.26, 35.9, 37.54, 39.79]
 }
 ```
 - `svg`: arquivo em `project/assets/` (o builder embute no HTML). Marque as partes com `data-step="1"`,
   `data-step="2"`… — cada uma aparece no tempo correspondente de `steps` (a etapa 1 sem tempo entra logo).
-- Desenhe o SVG você mesmo (formas simples, texto em "Bebas Neue"/"Montserrat"), com `viewBox` justo e
-  legível em 1000 px de largura. Ilustração sem medida real? Escreva "ilustração · fora de escala".
+- Desenhe o SVG você mesmo (formas simples, texto em "Bebas Neue"/"Montserrat"), com `viewBox` justo.
+  O painel tem ~770 px de área útil (~670 px se for mais alto que y 900, para não entrar embaixo dos
+  botões): desenhe com `viewBox` de ~700 de largura, texto com 26 px ou mais e nada importante nos cantos.
+  Ilustração sem medida real? Escreva "ilustração · fora de escala".
+- O painel começa em y 300 (`top` só para descer mais) e termina acima das legendas; se não couber, encolhe.
 - `dim` (0–1) = quanto o vídeo escurece por trás (padrão 0,78). `out` no fim do vídeo = fica até o final.
 
 ## Tabela / ranking
 Lista com posições que vão entrando uma a uma (de baixo para cima com `"order": "up"`), destaque dourado.
 ```json
 "table": {
-  "in": 50.18, "out": 60.15, "top": 150,
+  "in": 50.18, "out": 60.15,
   "title": "QUEM ELE", "accent": "DESBANCOU", "subtitle": "ranking de aceleração lateral",
   "order": "up", "rowStart": 50.7, "rowStep": 0.45, "flashAt": 57.24,
   "rows": [
@@ -161,16 +187,19 @@ Lista com posições que vão entrando uma a uma (de baixo para cima com `"order
 ```
 - `hl`: `"gold"` (linha campeã) ou `"mark"` (borda vermelha, para chamar atenção). `value` é opcional —
   só ponha número que a pessoa falou ou que veio de uma fonte confirmada.
-- Até 10 linhas cabem entre y 150 e 1200 (acima das legendas). `rowTimes` permite tempos manuais.
+- Até 10 linhas cabem entre y 300 e 1150 (acima das legendas; com 10 linhas o painel encolhe um pouco).
+  Nome da linha com até ~26 letras. `rowTimes` permite tempos manuais.
 - `flashAt` faz a linha dourada pulsar (combine com um soco de câmera).
 
 ## Legendas e contador
 Cada bloco: `{ "s": início, "e": fim, "big": true?, "w": [[PALAVRA, tempo, estilo?], ...] }`.
 - Estilos: `"y"` amarelo, `"g"` verde, `"r"` vermelho. `big` = fonte maior (bloco de impacto).
-- Um bloco por vez, uma linha (até ~15 letras; `big` até ~12).
+- Um bloco por vez, uma linha (até ~15 letras; `big` até ~12). Bloco mais largo que x 120–860 sai com
+  fonte menor (o modelo ajusta) — melhor dividir.
 - Contador: a palavra `"#NUM"` mostra `counter.values` um depois do outro a cada `counter.step`
   segundos, a partir do tempo da palavra. Valores longos ("1,23G") pedem `counter.width` maior (em em, padrão 3,1).
-- As legendas ficam em y ≈ 1250–1340 (terço de baixo, acima da interface do Instagram).
+- As legendas ficam em y ≈ 1170–1290, centralizadas; um bloco largo desliza um pouco para a esquerda para
+  não passar embaixo da coluna de botões (x > 860).
 
 ## Efeitos sonoros
 `"sfx": "auto"` (padrão) monta: whoosh na entrada, pop em cada balão e cartão, whoosh no símbolo e nas
@@ -192,8 +221,11 @@ Em fundo claro:
 As legendas já têm contorno preto; o aviso de contraste delas no check pode ser ignorado.
 
 ## Zonas da tela (1080×1920)
+- **Área segura** (detalhes em `references/safe-zone.md`): fora dela a interface cobre ou o celular corta.
+  - topo y < 300: status, Dynamic Island e cabeçalho do Reels;
+  - base y > 1440: @ do perfil, legenda do post, música;
+  - laterais x < 120 e x > 960: corte do zoom em celular alto (iPhone 16 perde ~100 px de cada lado);
+  - coluna de botões x > 860 com y > 900: curtir, comentar, compartilhar.
+- **Legendas**: y ≈ 1170–1290; os outros textos ficam acima de 1150.
 - **Cabeça num close**: x ≈ 270–900, y ≈ 150–1120. O que passa por trás tem que ficar fora disso
-  (laterais ou acima), senão some.
-- **Legendas**: y ≈ 1250–1340.
-- **Interface do Instagram**: evite texto em y > 1570 (legenda do post, botões) e na faixa direita
-  x > 960 entre y 1000 e 1650 (curtir, comentar, compartilhar). O topo (y < 150) tem pouca interface.
+  (na lateral) **e** dentro da área segura — num close isso quase não existe: prefira `"front": true`.

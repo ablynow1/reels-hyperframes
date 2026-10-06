@@ -26,10 +26,25 @@
 - **Contraste baixo nas legendas** (`#g1w1 1.94:1`) em fundo claro → pode ignorar: elas têm contorno preto,
   que o check não enxerga.
 - **`composition_file_too_large`** → aviso esperado; pode ignorar.
-- **`canvas_overflow` informativo** em texto gigante → normal quando o texto encosta na borda durante o zoom.
+- **`canvas_overflow` informativo** em texto gigante → normal quando o texto cresce na entrada (escala 1,8 → 1).
+
+## Área segura (texto cortado ou embaixo da interface no celular)
+- **No iPhone (ou em outro celular alto) texto some no topo, nas laterais ou embaixo dos botões** → é a área
+  segura (`references/safe-zone.md`). Desde a v1.3 o modelo encaixa tudo sozinho; um projeto feito com
+  versão antiga só precisa gerar de novo (`build_composition.py`) e renderizar. Confira no
+  `snaps_review/celular.jpg`.
+- **Check com `[área segura] … não coube … encurte o texto`** → texto comprido demais mesmo com a fonte
+  reduzida: divida a legenda, encurte a palavra gigante ou tire linhas da tabela/etapas da ilustração.
+- **Palavra gigante "por trás" escondida pela cabeça** → por trás ela fica a partir de y ≈ 300, e num close a
+  cabeça está ali. Use `"front": true` (sem `top`: fica logo acima das legendas). Configs antigos com `top`
+  acima de 300 (palavra "acima da cabeça") já viram "na frente" sozinhos.
+- **Balão escondido atrás da cabeça** → menos espaço na lateral: use `width` 240–280, empilhe à esquerda,
+  ou `"front": true` nos balões.
+- **Painel de ilustração com texto pequeno** → o painel agora tem ~670–770 px úteis: redesenhe o SVG com
+  `viewBox` de ~700 de largura e texto com 26 px ou mais.
 
 ## Visual
-- **Balão/palavra sumiu** → está atrás da cabeça. Veja "Zonas da tela" em `effects.md` e mova para o lado ou para cima.
+- **Balão/palavra sumiu** → está atrás da cabeça. Veja "Zonas da tela" em `effects.md` e mova para o lado ou use `"front": true`.
 - **Legenda em 2 linhas** → bloco longo demais; divida em dois no `captions.json`.
 - **Silhueta clara nas camadas de vidro** → é o buraco do fundo preenchido com `fill`. Ajuste `fill` para a cor da parede.
 - **Borda ou halo em volta da pessoa** → recorte com fundo muito parecido com a roupa/cabelo; use

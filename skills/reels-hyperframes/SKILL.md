@@ -37,7 +37,12 @@ efeitos visuais passando **por trás** da pessoa e efeitos sonoros. Um exemplo r
    nome, e-mail ou agenda que apareça.
 5. **Olhe os quadros antes de entregar.** O check não percebe um texto escondido atrás da cabeça nem um
    balão cobrindo o rosto; só olhando o snapshot dá para ver.
-6. Fale com a pessoa em linguagem simples e mande notícias curtas nas etapas demoradas
+6. **Nada importante fora da área segura** (`references/safe-zone.md`). No celular o Instagram cobre o
+   topo (y < 300), a base (y > 1440) e a coluna de botões (x > 860 abaixo de y 900), e em tela alta
+   (iPhone 16 etc.) dá zoom e corta ~100 px de cada lado (x < 120 e x > 960). O modelo encaixa sozinho
+   legendas, palavras, balões, cartões e painéis lá dentro; você confere no `celular.jpg` do review se a
+   cabeça não ficou cobrindo nada que foi empurrado.
+7. Fale com a pessoa em linguagem simples e mande notícias curtas nas etapas demoradas
    (transcrição, recorte, render).
 
 ## Passo a passo
@@ -132,9 +137,9 @@ Cada efeito começa na palavra que o motiva e aparece **uma vez** no vídeo. Est
 
 | trecho | o que a pessoa fala | efeito |
 | --- | --- | --- |
-| 0–3 s | gancho / o que perguntam para ela | `bubbles` (balões de pergunta por trás) |
+| 0–3 s | gancho / o que perguntam para ela | `bubbles` (balões de pergunta; `"front": true` num close) |
 | 3–5 s | a pergunta em si | `bigSymbol` ("?", "!", "$") |
-| marca ou palavra-chave | "…indico a APPMAX" | `bigWord` + soco de câmera (`camera.punches`) |
+| marca ou palavra-chave | "…indico a APPMAX" | `bigWord` (`"front": true` num close) + soco de câmera (`camera.punches`) |
 | explicação | "alta taxa de aprovação…" | `glass` (camadas de vidro com cartão) |
 | comparação ou lista | "diferente de outros gateways…" | `frame` (moldura + manchete + cartões) |
 | número final | "acima de 90%" | `ring` + contador na legenda + soco de câmera |
@@ -154,7 +159,9 @@ sozinho a partir dos efeitos.
 python3 "$SKILL_DIR/scripts/build_composition.py" "$WORK"
 python3 "$SKILL_DIR/scripts/hf.py" "$WORK" check
 ```
-Resolva os AVISOS do builder e os erros do check até sair `Check passed`. Pode ignorar:
+Resolva os AVISOS do builder e os erros do check até sair `Check passed`. A lista "ÁREA SEGURA" do
+builder só informa o que o modelo vai empurrar para dentro (não precisa mexer, mas confira no passo 10);
+um erro `[área segura] … encurte o texto` no check pede texto menor. Pode ignorar:
 `composition_file_too_large` (o arquivo tem todos os efeitos) e contraste baixo das **legendas** em fundo
 claro (elas têm contorno preto, que o check não enxerga).
 
@@ -163,12 +170,18 @@ claro (elas têm contorno preto, que o check não enxerga).
 python3 "$SKILL_DIR/scripts/review.py" "$WORK"
 ```
 O `review.py` lê o config e tira quadros sozinho em cada entrada e saída de efeito, nos socos de câmera e
-no fim (ideia do pdoom-video: revisar toda troca de cena). Abra `project/snaps_review/contact-sheet.jpg` e
-procure: balão ou texto sumido atrás da cabeça, coisa cobrindo o rosto, legenda em duas linhas, cartão
-cortado. Para olhar um tempo específico:
+no fim (ideia do pdoom-video: revisar toda troca de cena). Abra as duas folhas:
+- `project/snaps_review/contact-sheet.jpg`: balão ou texto sumido atrás da cabeça, coisa cobrindo o
+  rosto, legenda em duas linhas, cartão cortado;
+- `project/snaps_review/celular.jpg`: os mesmos quadros com a área segura — **faixa vermelha** é onde o
+  Instagram cobre ou o celular corta, **linha amarela** é o topo das legendas. Nenhum texto, número ou
+  cartão pode encostar no vermelho (se encostar, algo foi feito à mão fora do modelo).
+
+Para olhar um tempo específico:
 `python3 "$SKILL_DIR/scripts/hf.py" "$WORK" snapshot --at 7.2 --no-end -o snaps`. Num close, a cabeça ocupa mais ou
-menos x 270–900 e y 150–1120 da tela 1080×1920; o que passa por trás tem que ficar nas laterais ou acima
-da cabeça. Ajuste o config, gere de novo e tire outro snapshot até ficar limpo.
+menos x 270–900 e y 150–1120 da tela 1080×1920; o que passa por trás tem que ficar na lateral e dentro da
+área segura, o que num close quase não sobra — palavra gigante e balões vão melhor com `"front": true`.
+Ajuste o config, gere de novo e tire outro snapshot até ficar limpo.
 
 ### 11. Render
 ```bash
@@ -188,11 +201,11 @@ de vídeo 720p.
 
 ### 12. Revisão final
 ```bash
-python3 "$SKILL_DIR/scripts/sheet.py" "$WORK/project/renders/reel.mp4" --fps 2
+python3 "$SKILL_DIR/scripts/sheet.py" "$WORK/project/renders/reel.mp4" --fps 2 --celular
 python3 "$SKILL_DIR/scripts/review.py" "$WORK" --render
 ```
-Olhe a folha inteira (2 quadros/s) e a folha das trocas de efeito do vídeo pronto
-(`renders/revisao_trocas.jpg`). Para uma transição em câmera lenta:
+Olhe a folha inteira (2 quadros/s, com a área segura marcada) e as folhas das trocas de efeito do vídeo
+pronto (`renders/revisao_trocas.jpg` e `renders/revisao_celular.jpg`). Para uma transição em câmera lenta:
 `sheet.py … --from 5.6 --to 6.4 --fps 10`. Se algo escapou, volte ao 10.
 
 ### 13. Entrega
@@ -202,6 +215,7 @@ que a imagem fica um pouco mais suave que uma gravação vertical nativa.
 
 ## Referências
 - `references/effects.md` — cada efeito: campos, valores padrão, posição e tempo.
+- `references/safe-zone.md` — área segura do Reels: os números, o que o modelo encaixa sozinho e o que conferir.
 - `references/screen-recording.md` — modo tela (vídeo sem pessoa aparecendo).
 - `references/troubleshooting.md` — erros conhecidos e como resolver.
 - `assets/config.example.json` — config real completo do Reels de exemplo.

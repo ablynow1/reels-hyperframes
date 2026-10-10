@@ -43,5 +43,8 @@ que importa. Confirme com a pessoa antes de seguir (a skill foi pensada para que
 
 7. **Render** (passo 11) com `--video-frame-format png` para o texto da interface ficar nítido.
 
+**Gravação sem narração ou com áudio ruim:** dá para narrar com voz gerada pelo motor da Microsoft —
+roteiro, amostras de voz e a pessoa escolhe (`references/narration.md`).
+
 8. **Check** (passo 9): o aviso de contraste das legendas em fundo branco pode ser ignorado (elas têm
    contorno preto).

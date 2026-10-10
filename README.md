@@ -20,6 +20,16 @@ Faz Reels curto (~15 s, escolhendo o melhor trecho) ou edita o **vídeo inteiro*
 funciona com **gravação de tela narrada** (modo tela: corta a região certa da tela, tira barra de
 menu e notificações, e põe os efeitos por cima).
 
+## Novidades da v1.4 — narração com voz gerada (você escolhe a voz)
+
+- vídeo sem fala, com áudio ruim ou que você quer narrado: o Claude escreve o roteiro com você e gera a
+  voz com o **motor de voz da Microsoft** (o mesmo do Edge);
+- você ouve **amostras de cada voz** (Antonio, Francisca, Thalita e outras) e escolhe — a skill não
+  escolhe por você;
+- a legenda sai com o **tempo exato de cada palavra**: nada de refazer a voz no CapCut e ressincronizar;
+- a voz robótica de antes (o `tts` do HyperFrames, modelo Kokoro) não é mais usada;
+- detalhes em `skills/reels-hyperframes/references/narration.md`.
+
 ## Novidades da v1.3 — área segura (100% legível em qualquer celular)
 
 No teste publicado, vários elementos ficavam embaixo da interface do Instagram ou cortados: palavra
@@ -52,6 +62,7 @@ Projetos feitos com a versão anterior: é só gerar o `index.html` de novo e re
 - **Palavra gigante na frente** da pessoa, para vídeos em que a cabeça ocupa o topo da tela
 - **Legenda palavra por palavra** com destaques em amarelo, verde e vermelho
 - **Efeitos sonoros** automáticos (whoosh, pop, impacto, riser, brilho)
+- **Narração com voz gerada** (motor da Microsoft): você escolhe a voz ouvindo amostras; legenda sincronizada
 - **Acabamento opcional**: borrão de movimento e grão de filme; limpeza leve de ruído na voz
 
 Exemplo: o config completo do Reels feito a partir do vídeo
@@ -64,6 +75,7 @@ Exemplo: o config completo do Reels feito a partir do vídeo
 - **Node.js 22+**, **FFmpeg**, **Python 3**
 - **yt-dlp** (para vídeos do YouTube)
 - Um motor de transcrição: `mlx-whisper` (Mac com chip Apple), `faster-whisper` ou `whisper-cpp`
+- Só para narração com voz gerada: `edge-tts` (`pip3 install edge-tts`) e internet
 
 No Mac:
 ```bash
@@ -118,7 +130,7 @@ rm -rf ~/.claude/skills/reels-hyperframes && cp -r skills/reels-hyperframes ~/.c
 
 > atualiza minha skill reels-hyperframes com a versão mais nova do GitHub (ablynow1/reels-hyperframes)
 
-Para saber se já está na v1.3: a pasta da skill tem o arquivo `references/safe-zone.md`.
+Para saber se já está na v1.4: a pasta da skill tem o arquivo `scripts/narrate.py`.
 
 ## Como usar
 

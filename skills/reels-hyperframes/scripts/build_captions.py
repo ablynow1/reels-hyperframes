@@ -6,8 +6,11 @@ O começo/fim de cada palavra é encaixado nas pausas reais do áudio (o Whisper
 Destaques automáticos (revise!): número/% -> verde "g"; nome próprio/sigla -> amarelo "y";
 negação (não, nunca…) -> vermelho "r". Blocos com número ou palavra única destacada ficam grandes.
 
+Com narração gerada (narrate.py), as palavras e o tempo vêm da própria narração (exatos, sem Whisper).
+
 Uso:
-  python3 build_captions.py <pasta> [--max-words 3] [--max-chars 15]
+  python3 build_captions.py <pasta> [--max-words 3] [--max-chars 15] [--transcript]
+    --transcript = usar a transcrição do vídeo mesmo com narração gerada
 """
 
 import argparse
@@ -27,20 +30,26 @@ def clean(t):
     return t
 
 
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("work")
-    ap.add_argument("--max-words", type=int, default=3)
-    ap.add_argument("--max-chars", type=int, default=15)
-    a = ap.parse_args()
-    p = work_paths(a.work)
-    words = load_json(p["transcript"])
-    clip = load_json(p["clip"])
-    if not words or not clip:
-        die("rode transcribe.py e make_clip.py antes.")
-    D = clip["duration"]
+def from_narration(narr, D):
+    """Palavras da narração gerada pelo narrate.py: já estão no tempo do corte e o tempo é exato."""
+    out, prev = [], ""
+    for i, w in enumerate(narr.get("words", [])):
+        raw = w.get("raw") or w["text"]
+        out.append({
+            "raw": raw,
+            "text": clean(raw).upper(),
+            "s": round(w["start"], 2),
+            "e": round(w["end"], 2),
+            "piece": 0,
+            "sentence_start": i == 0 or prev.rstrip().endswith((".", "?", "!")),
+        })
+        prev = raw
+    return [w for w in out if w["text"] and 0 <= w["s"] < D]
 
-    # palavras do corte, no tempo do corte
+
+def from_transcript(p, words, clip):
+    """Palavras da transcrição do vídeo original, levadas para o tempo do corte."""
+    D = clip["duration"]
     cw = []
     for pi, ((a0, b0), off) in enumerate(zip(clip["pieces"], clip["offsets"])):
         pauses, _ = detect_pauses(p["original"], max(0.0, a0 - 1.0), b0 + 1.0)
@@ -75,7 +84,32 @@ def main():
                 "piece": pi,
                 "sentence_start": i == 0 or prev_raw.endswith((".", "?", "!")),
             })
-    cw = [w for w in cw if w["text"] and 0 <= w["s"] < D]
+    return [w for w in cw if w["text"] and 0 <= w["s"] < D]
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("work")
+    ap.add_argument("--max-words", type=int, default=3)
+    ap.add_argument("--max-chars", type=int, default=15)
+    ap.add_argument("--transcript", action="store_true", help="usar a transcrição mesmo com narração gerada")
+    a = ap.parse_args()
+    p = work_paths(a.work)
+    clip = load_json(p["clip"])
+    if not clip:
+        die("rode make_clip.py antes.")
+    D = clip["duration"]
+    narr = load_json(p["project"] / "narration.json")
+    # a narração só vale se for a do corte atual (o make_clip.py refaz o clip.json sem ela)
+    from_tts = bool(narr and clip.get("narration") and not a.transcript)
+    if from_tts:
+        cw = from_narration(narr, D)
+        print(f"Legendas a partir da narração gerada ({narr.get('voice', '')}): tempo exato de cada palavra.")
+    else:
+        words = load_json(p["transcript"])
+        if not words:
+            die("rode transcribe.py antes.")
+        cw = from_transcript(p, words, clip)
     if not cw:
         die("nenhuma palavra caiu dentro do corte — confira os pedaços do make_clip.")
 
@@ -155,7 +189,10 @@ def main():
     for g in out:
         txt = " ".join(x[0] + ("*" if len(x) > 2 else "") for x in g["w"])
         print(f"  {g['s']:5.2f}-{g['e']:5.2f}  {txt}{'  (grande)' if g.get('big') else ''}")
-    print("\n* = palavra destacada. Revise: erros do Whisper (marcas, termos técnicos), destaques e quebras.")
+    if from_tts:
+        print("\n* = palavra destacada. As palavras vieram do roteiro: revise só destaques e quebras.")
+    else:
+        print("\n* = palavra destacada. Revise: erros do Whisper (marcas, termos técnicos), destaques e quebras.")
     print("Para um contador animado (ex.: 90%), troque a palavra por \"#NUM\" e defina \"counter\" no config.json.")
 
 

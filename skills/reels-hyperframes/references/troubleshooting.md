@@ -43,6 +43,16 @@
 - **Painel de ilustração com texto pequeno** → o painel agora tem ~670–770 px úteis: redesenhe o SVG com
   `viewBox` de ~700 de largura e texto com 26 px ou mais.
 
+## Narração (voz gerada)
+- **`falta o edge-tts`** → `pip3 install edge-tts` (só é preciso para narrar).
+- **Erro 403, "No audio was received" ou voz que não sai** → sem internet ou edge-tts desatualizado (a Microsoft
+  muda o serviço de vez em quando): `pip3 install -U edge-tts`. Confira o nome da voz com `narrate.py --list`.
+- **Palavra pronunciada errada** (inglês, marca, sigla) → escreva no roteiro do jeito que se fala
+  (ex.: "guêituêis") e gere de novo; a legenda continua mostrando a palavra do roteiro como foi escrita.
+- **Narração mais longa que o vídeo** → o `narrate.py` avisa; refaça o `make_clip.py` com um trecho maior
+  ou encurte o roteiro.
+- **Voz robótica** → é o `hyperframes tts` (Kokoro) ou o `say` do Mac; use o `narrate.py`.
+
 ## Visual
 - **Balão/palavra sumiu** → está atrás da cabeça. Veja "Zonas da tela" em `effects.md` e mova para o lado ou use `"front": true`.
 - **Legenda em 2 linhas** → bloco longo demais; divida em dois no `captions.json`.

@@ -68,9 +68,15 @@ rows.append((
     ),
 ))
 
+# Narração com voz gerada (só se a pessoa quiser narração): motor da Microsoft
+edge = importlib.util.find_spec("edge_tts")
+rows.append(("edge-tts (narração)", bool(edge), "instalado" if edge else "não encontrado", "pip3 install edge-tts"))
+
+OPTIONAL = ("yt-dlp (links do YouTube)", "edge-tts (narração)")
+
 print("\nChecagem do ambiente da skill reels-hyperframes\n")
 for name, ok, detail, how in rows:
-    required = name not in ("yt-dlp (links do YouTube)",)
+    required = name not in OPTIONAL
     mark = "OK " if ok else ("FALTA" if required else "opcional")
     print(f"  [{mark:^8}] {name:<28} {detail}")
     if not ok:

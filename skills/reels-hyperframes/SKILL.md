@@ -1,6 +1,6 @@
 ---
 name: reels-hyperframes
-description: Transforma um vídeo de alguém falando pra câmera (link do YouTube ou arquivo) num Reels/Shorts/TikTok vertical de ~15 segundos com edição de impacto feita com HyperFrames — escolhe o melhor trecho pela transcrição, corta e reenquadra em 9:16, recorta a pessoa do fundo e anima coisas por trás dela (balões de pergunta, símbolo e palavra gigantes, camadas de vidro 3D, moldura com painel lateral, anel de porcentagem), com legenda palavra por palavra e efeitos sonoros. Também funciona com gravação de tela narrada. Use sempre que pedirem para "fazer um reels", "cortar um trecho", "transformar esse vídeo em short/tiktok", "editar pra postar no Instagram", "deixar a edição foda", "pegar um vídeo meu do YouTube e fazer um corte" ou mandarem um link de vídeo pedindo uma versão vertical editada — mesmo que não citem HyperFrames.
+description: Transforma um vídeo de alguém falando pra câmera (link do YouTube ou arquivo) num Reels/Shorts/TikTok vertical de ~15 segundos com edição de impacto feita com HyperFrames — escolhe o melhor trecho pela transcrição, corta e reenquadra em 9:16, recorta a pessoa do fundo e anima coisas por trás dela (balões de pergunta, símbolo e palavra gigantes, camadas de vidro 3D, moldura com painel lateral, anel de porcentagem), com legenda palavra por palavra e efeitos sonoros. Também funciona com gravação de tela narrada e narra vídeo sem fala com voz gerada pelo motor da Microsoft (a pessoa escolhe a voz). Use sempre que pedirem para "fazer um reels", "cortar um trecho", "transformar esse vídeo em short/tiktok", "editar pra postar no Instagram", "deixar a edição foda", "pegar um vídeo meu do YouTube e fazer um corte" ou mandarem um link de vídeo pedindo uma versão vertical editada — mesmo que não citem HyperFrames.
 ---
 
 # Reels com HyperFrames
@@ -42,7 +42,10 @@ efeitos visuais passando **por trás** da pessoa e efeitos sonoros. Um exemplo r
    (iPhone 16 etc.) dá zoom e corta ~100 px de cada lado (x < 120 e x > 960). O modelo encaixa sozinho
    legendas, palavras, balões, cartões e painéis lá dentro; você confere no `celular.jpg` do review se a
    cabeça não ficou cobrindo nada que foi empurrado.
-7. Fale com a pessoa em linguagem simples e mande notícias curtas nas etapas demoradas
+7. **Voz gerada só com o motor da Microsoft e a voz que a pessoa escolher** (`references/narration.md`):
+   mande as amostras do `narrate.py` e espere a escolha. Nunca use `hyperframes tts` (Kokoro) nem o `say`
+   do Mac: em português soam robóticos.
+8. Fale com a pessoa em linguagem simples e mande notícias curtas nas etapas demoradas
    (transcrição, recorte, render).
 
 ## Passo a passo
@@ -63,6 +66,8 @@ Olhe `source/frames_overview.jpg` **antes de transcrever**: tem uma pessoa falan
 - **Não** (gravação de tela, slides, só áudio com imagem parada) → avise a pessoa que a skill foi feita
   para quem aparece falando e pergunte se quer seguir no **modo tela** (`references/screen-recording.md`:
   sem recorte, efeitos por cima da tela) ou trocar de vídeo.
+- **Sem fala, áudio ruim ou pediram narração** → narração com voz gerada
+  (`references/narration.md`): roteiro, amostras de voz, a pessoa escolhe, e as legendas saem sincronizadas.
 Se o yt-dlp der `HTTP Error 403`, ele está desatualizado: peça para atualizar (`brew upgrade yt-dlp`
 ou `yt-dlp -U`) ou para mandar o arquivo do vídeo.
 
@@ -122,7 +127,8 @@ onde ela estava (`plate.webm`); tudo que a skill põe "por trás da pessoa" fica
 ```bash
 python3 "$SKILL_DIR/scripts/build_captions.py" "$WORK"
 ```
-Revise `project/captions.json` antes de seguir:
+Com narração gerada (`narrate.py`), as palavras e os tempos vêm da própria narração: não há erro de
+Whisper para corrigir. Revise `project/captions.json` antes de seguir:
 - **erros do Whisper** em marcas e termos técnicos (ex.: "GETAWAYS" → "GATEWAYS", "METAEDGE" → "META ADS");
 - **primeira e última palavra** de cada pedaço: confira que foram ditas mesmo dentro do corte;
 - **destaques**: `"y"` amarelo (marca, palavra-chave), `"g"` verde (número, resultado bom), `"r"` vermelho
@@ -217,5 +223,6 @@ que a imagem fica um pouco mais suave que uma gravação vertical nativa.
 - `references/effects.md` — cada efeito: campos, valores padrão, posição e tempo.
 - `references/safe-zone.md` — área segura do Reels: os números, o que o modelo encaixa sozinho e o que conferir.
 - `references/screen-recording.md` — modo tela (vídeo sem pessoa aparecendo).
+- `references/narration.md` — narração com voz gerada (motor da Microsoft; a pessoa escolhe a voz).
 - `references/troubleshooting.md` — erros conhecidos e como resolver.
 - `assets/config.example.json` — config real completo do Reels de exemplo.
